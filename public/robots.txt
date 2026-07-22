@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /area-riservata
+Disallow: /en/login
+Disallow: /en/reserved-area
+
+Sitemap: https://www.convation.it/sitemap.xml

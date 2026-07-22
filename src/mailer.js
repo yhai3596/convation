@@ -7,7 +7,8 @@ const USER = process.env.SMTP_USER || '';
 const PASS = process.env.SMTP_PASS || '';
 const PORT = Number(process.env.SMTP_PORT || 465);
 const FROM = process.env.SMTP_FROM || USER;
-const SITE_URL = process.env.SITE_URL || 'https://geopro.cc';
+const SITE_URL = process.env.SITE_URL || 'https://www.convation.it';
+const NOTIFY_TO = process.env.MAIL_NOTIFY_TO || 'info@convation.it';
 
 function enabled() { return !!(HOST && USER && PASS); }
 
@@ -45,9 +46,9 @@ async function sendDiagnosisReport(to, company, report) {
   if (!enabled()) return false;
   try {
     await transport.sendMail({
-      from: `"Alan · HVAC × AI" <${FROM}>`,
+      from: `"Convation" <${FROM}>`,
       to,
-      subject: `${company} · 企业 AI 诊断报告`,
+      subject: `${company} · report`,
       html: reportHtml(company, report),
     });
     return true;
@@ -57,4 +58,21 @@ async function sendDiagnosisReport(to, company, report) {
   }
 }
 
-module.exports = { enabled, sendDiagnosisReport };
+// 联系表单新留言通知（可选；未配 SMTP 静默跳过，留言仍入库）
+async function notifyMessage(name, email, body) {
+  if (!enabled()) return false;
+  try {
+    await transport.sendMail({
+      from: `"Convation sito" <${FROM}>`,
+      to: NOTIFY_TO,
+      subject: `Nuovo messaggio dal sito${name ? ' · ' + name : ''}`,
+      text: `Da: ${name || '—'} <${email || '—'}>\n\n${body}\n\n—\nRispondi dal pannello admin o direttamente all'email del mittente.`,
+    });
+    return true;
+  } catch (e) {
+    console.warn('[mailer] 通知发送失败：', e.message);
+    return false;
+  }
+}
+
+module.exports = { enabled, sendDiagnosisReport, notifyMessage };

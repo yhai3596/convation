@@ -93,12 +93,13 @@ router.get('/comments/:id/reply-status', (req, res) => {
   res.json({ ok: true, status: parent.agent_status || 'pending', reply: reply || null });
 });
 
-// —— 悬浮智能助手 ——
+// —— 悬浮智能助手（按页面 locale 回复） ——
 router.post('/assistant', rateLimit('assist', 30, 600e3), async (req, res) => {
   const msg = String((req.body || {}).message || '').trim().slice(0, 500);
-  if (!msg) return res.status(400).json({ error: '请输入内容' });
+  if (!msg) return res.status(400).json({ error: 'Inserisci un messaggio' });
+  const locale = (req.body || {}).locale === 'en' ? 'en' : 'it';
   analytics.record({ sid: (req.body || {}).sid || '', type: 'assistant_msg', path: (req.body || {}).path || '' });
-  const { reply, via } = await agent.assistantReply(msg);
+  const { reply, via } = await agent.assistantReply(msg, locale);
   res.json({ ok: true, reply, via });
 });
 
@@ -113,9 +114,12 @@ router.post('/subscribe', rateLimit('sub', 10, 600e3), (req, res) => {
 router.post('/message', rateLimit('msg', 10, 600e3), (req, res) => {
   const { name = '', email = '', body = '' } = req.body || {};
   const text = String(body).trim();
-  if (text.length < 2 || text.length > 2000) return res.status(400).json({ error: '请填写留言内容' });
-  db.prepare('INSERT INTO messages(name,email,body) VALUES (?,?,?)')
-    .run(String(name).trim().slice(0, 40), String(email).trim().slice(0, 80), text);
+  if (text.length < 2 || text.length > 2000) return res.status(400).json({ error: 'Scrivi il messaggio (2–2000 caratteri)' });
+  const nm = String(name).trim().slice(0, 40);
+  const em = String(email).trim().slice(0, 80);
+  db.prepare('INSERT INTO messages(name,email,body) VALUES (?,?,?)').run(nm, em, text);
+  // 可选邮件通知（未配 SMTP 静默跳过，留言已入库）
+  mailer.notifyMessage(nm, em, text).catch(() => {});
   res.json({ ok: true });
 });
 

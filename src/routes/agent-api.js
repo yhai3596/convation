@@ -57,23 +57,24 @@ router.get('/status', (req, res) => {
 
 // —— 发布内容：审核制开启时落草稿 ——
 router.post('/posts', (req, res) => {
-  const { title = '', category = '行业观察', excerpt = '', content_md = '', read_minutes = 5 } = req.body || {};
+  const { title = '', category = 'Incentivi', excerpt = '', content_md = '', read_minutes = 5, locale = 'it' } = req.body || {};
   const t = String(title).trim();
-  if (!t) return res.status(400).json({ error: '缺少标题 title' });
-  if (!String(content_md).trim()) return res.status(400).json({ error: '缺少正文 content_md' });
+  if (!t) return res.status(400).json({ error: 'Manca il titolo (title)' });
+  if (!String(content_md).trim()) return res.status(400).json({ error: 'Manca il corpo (content_md)' });
+  const loc = locale === 'en' ? 'en' : 'it';
 
   const review = agentModes().contentReview;
   const status = review ? 'draft' : 'published';
   const publishedAt = review ? null : db.prepare("SELECT date('now','+8 hours') d").get().d;
   const slug = `post-${Date.now().toString(36)}`;
   const rm = Math.max(1, Math.min(120, Number(read_minutes) || 5));
-  const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by)
-    VALUES (?,?,?,?,?,?,?,?,?)`)
-    .run(slug, t, String(category).trim() || '行业观察', String(excerpt).trim().slice(0, 300), String(content_md), rm, status, publishedAt, `agent:${req.agentName}`);
-  logActivity(`agent:${req.agentName}`, 'post_create', `post#${r.lastInsertRowid}`, `${t.slice(0, 50)} → ${status === 'draft' ? '草稿待审' : '直接发布'}`, true);
+  const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by,locale)
+    VALUES (?,?,?,?,?,?,?,?,?,?)`)
+    .run(slug, t, String(category).trim() || 'Incentivi', String(excerpt).trim().slice(0, 300), String(content_md), rm, status, publishedAt, `agent:${req.agentName}`, loc);
+  logActivity(`agent:${req.agentName}`, 'post_create', `post#${r.lastInsertRowid}`, `${t.slice(0, 50)} → ${status === 'draft' ? 'bozza in revisione' : 'pubblicato'}`, true);
   res.json({
     ok: true, id: r.lastInsertRowid, slug, status,
-    note: status === 'draft' ? '内容审核制开启：已存为草稿，待 Alan 后台审核发布' : '已直接发布',
+    note: status === 'draft' ? 'Revisione contenuti attiva: salvato come bozza, in attesa di approvazione in admin.' : 'Pubblicato.',
   });
 });
 
@@ -94,17 +95,25 @@ router.get('/comments', (req, res) => {
   res.json({ ok: true, count: rows.length, comments: rows });
 });
 
-// —— 提交评论回复：直接上线（全自动模式），带外部 Agent 标注 ——
+// —— 提交评论回复：审核制开启时进 ai_drafts 待审，关闭时直接上线 ——
 router.post('/comments/:id/reply', (req, res) => {
   const id = Number(req.params.id);
   const body = String((req.body || {}).body || '').trim();
-  if (body.length < 2 || body.length > 600) return res.status(400).json({ error: '回复内容需在 2–600 字之间' });
+  if (body.length < 2 || body.length > 600) return res.status(400).json({ error: 'La risposta deve essere tra 2 e 600 caratteri' });
   const c = db.prepare('SELECT id, post_id, agent_status FROM comments WHERE id=? AND parent_id IS NULL AND is_agent=0').get(id);
-  if (!c) return res.status(404).json({ error: '评论不存在或不可回复' });
-  if (c.agent_status === 'replied') return res.status(409).json({ error: '该评论已有自动回复' });
+  if (!c) return res.status(404).json({ error: 'Commento inesistente o non rispondibile' });
+  if (c.agent_status === 'replied') return res.status(409).json({ error: 'Commento già con risposta automatica' });
+
+  if (agentModes().contentReview) {
+    db.prepare(`INSERT INTO ai_drafts(source,type,payload_json,status) VALUES (?,?,?, 'pending')`)
+      .run(`agent:${req.agentName}`, 'reply', JSON.stringify({ post_id: c.post_id, comment_id: c.id, reply: body }));
+    db.prepare("UPDATE comments SET agent_status='skipped' WHERE id=?").run(c.id);
+    logActivity(`agent:${req.agentName}`, 'comment_review', `comment#${c.id}`, `bozza risposta in revisione · ${body.slice(0, 60)}`, true);
+    return res.json({ ok: true, status: 'pending_review', note: 'Revisione attiva: la risposta è in coda di approvazione in admin.' });
+  }
 
   const r = db.prepare(`INSERT INTO comments(post_id,user_id,author_name,body,parent_id,is_agent,agent_label,agent_status)
-    VALUES (?,NULL,'Alan',?,?,1,?,'replied')`)
+    VALUES (?,NULL,'Convation',?,?,1,?,'replied')`)
     .run(c.post_id, body, c.id, `AI 自动回复 · via ${req.agentName}`);
   db.prepare("UPDATE comments SET agent_status='replied' WHERE id=?").run(c.id);
   logActivity(`agent:${req.agentName}`, 'comment_reply', `comment#${c.id}`, body.slice(0, 60), true);

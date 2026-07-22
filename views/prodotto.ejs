@@ -1,8 +1,12 @@
+<% const EN = (typeof locale !== 'undefined' && locale === 'en'); %>
 <%- include('partials/head') %>
 <%- include('partials/nav') %>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Product","name":"<%= EN && p.name_en ? p.name_en : p.name_it %>","category":"<%= p.category === 'heatpump' ? 'Heat pump' : 'Air conditioner' %>","brand":{"@type":"Brand","name":"Convation"},"energyEfficiency":"<%= p.efficiency %>","description":"<%= (EN && p.desc_en ? p.desc_en : p.desc_it).replace(/"/g,'&quot;') %>"<% if (specs.length) { %>,"additionalProperty":[<% for (const [k,v] of specs) { %>,{"@type":"PropertyValue","name":"<%= k %>","value":"<%= v %>"}<% } %>]<% } %>}
+</script>
 
 <div class="container">
-  <% const EN = (typeof locale !== 'undefined' && locale === 'en'); %>
+  <% /* EN defined above for JSON-LD */ %>
   <section class="page-hero" style="padding-bottom:28px">
     <span class="kicker"><a href="<%= link('/prodotti') %>" style="color:inherit;text-decoration:none">Prodotti</a> · <%= p.category === 'heatpump' ? ct('home.cat_hp_title') : ct('home.cat_ac_title') %></span>
     <h1><%= EN && p.name_en ? p.name_en : p.name_it %> <span class="eei<%- p.efficiency === 'A++' ? ' e2' : '' %>" style="font-size:14px;vertical-align:middle"><%= p.efficiency %></span></h1>

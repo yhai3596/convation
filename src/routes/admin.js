@@ -361,7 +361,7 @@ router.post('/admin/api/token-revoke', requireAdminApi, (req, res) => {
   res.json({ ok: true });
 });
 
-// ============================================================ 页面内容 / 诊断知识库
+// ============================================================ 页面内容 + AI 草稿审核
 router.post('/admin/api/content', requireAdminApi, (req, res) => {
   const { key, value, locale } = req.body || {};
   try {
@@ -370,6 +370,35 @@ router.post('/admin/api/content', requireAdminApi, (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+});
+
+// AI 草稿审核：通过→发布回复（或对 post 类置 published），驳回→rejected
+router.post('/admin/api/draft-approve', requireAdminApi, (req, res) => {
+  const id = Number((req.body || {}).id);
+  const d = db.prepare('SELECT * FROM ai_drafts WHERE id=? AND status=?').get(id, 'pending');
+  if (!d) return res.status(404).json({ error: '草稿不存在或已处理' });
+  let p;
+  try { p = JSON.parse(d.payload_json || '{}'); } catch (_) { p = {}; }
+  if (d.type === 'reply' && p.comment_id && p.reply) {
+    const c = db.prepare('SELECT id, post_id FROM comments WHERE id=?').get(p.comment_id);
+    if (!c) return res.status(404).json({ error: '原评论已不存在' });
+    db.prepare(`INSERT INTO comments(post_id,user_id,author_name,body,parent_id,is_agent,agent_label,agent_status)
+      VALUES (?,NULL,'Convation',?,?,1,?,'replied')`).run(c.post_id, p.reply, c.id, `AI 自动回复 · via ${d.source}`);
+    db.prepare("UPDATE comments SET agent_status='replied' WHERE id=?").run(c.id);
+  } else if (d.type === 'post' && p.post_id) {
+    db.prepare("UPDATE posts SET status='published', published_at=COALESCE(published_at, date('now','+8 hours')) WHERE id=?").run(p.post_id);
+  }
+  db.prepare("UPDATE ai_drafts SET status='approved', reviewed_by=?, reviewed_at=datetime('now') WHERE id=?").run(req.session.user.email, id);
+  config.logActivity('admin', 'draft_approve', `draft#${id}`, `${d.type} 通过`, true);
+  res.json({ ok: true });
+});
+
+router.post('/admin/api/draft-reject', requireAdminApi, (req, res) => {
+  const id = Number((req.body || {}).id);
+  const r = db.prepare("UPDATE ai_drafts SET status='rejected', reviewed_by=?, reviewed_at=datetime('now') WHERE id=? AND status='pending'").run(req.session.user.email, id);
+  if (!r.changes) return res.status(404).json({ error: '草稿不存在或已处理' });
+  config.logActivity('admin', 'draft_reject', `draft#${id}`, '驳回', true);
+  res.json({ ok: true });
 });
 
 // ============================================================ 文件上传（图片 + PDF 文档）

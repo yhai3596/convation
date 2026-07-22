@@ -125,6 +125,17 @@ function makeRouter(locale) {
     });
   });
 
+  // —— 工具嵌入页（iframe 直链 hvac.geopro.cc） ——
+  r.get(pathOf('/strumenti') + '/:id', (req, res) => {
+    const t = db.prepare('SELECT * FROM tools WHERE id=? AND archived=0').get(Number(req.params.id));
+    if (!t || !t.url) return res.status(404).render('404', { title: 'Pagina non trovata', active: '' });
+    res.render('strumento-embed', {
+      title: `${t.name} · ${SITE}`,
+      active: 'strumenti',
+      t,
+    });
+  });
+
   // —— 新闻列表（按 locale 过滤） ——
   r.get(pathOf('/news'), (req, res) => {
     const posts = db.prepare("SELECT * FROM posts WHERE status='published' AND locale=? ORDER BY published_at DESC").all(locale);
@@ -182,6 +193,34 @@ router.get('/docs/agent-api', (req, res) => {
   let html = '<p>文档缺失。</p>';
   try { html = marked.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'docs', 'AGENT_API.md'), 'utf8')); } catch (e) { /* noop */ }
   res.render('doc', { title: `Agent API 文档 · ${SITE}`, active: '', contentHtml: html });
+});
+
+// —— SEO：sitemap.xml（IT + EN 全页 + 产品 + 已发布新闻） ——
+router.get('/sitemap.xml', (req, res) => {
+  res.set('Content-Type', 'application/xml; charset=utf-8');
+  const today = new Date().toISOString().slice(0, 10);
+  const urls = [];
+  const add = (path, altIt, altEn, lastmod, prio) => urls.push(
+    `  <url>\n    <loc>${ORIGIN}${path}</loc>${lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : ''}\n    <changefreq>weekly</changefreq>\n    <priority>${prio}</priority>${
+      altIt ? `\n    <xhtml:link rel="alternate" hreflang="it" href="${ORIGIN}${altIt}"/>` : ''}${
+      altEn ? `\n    <xhtml:link rel="alternate" hreflang="en" href="${ORIGIN}${altEn}"/>` : ''}\n    <xhtml:link rel="alternate" hreflang="x-default" href="${ORIGIN}${altIt || '/'}"/>\n  </url>`
+  );
+  // 静态页
+  for (const [itPath, enPath] of SLUGS) {
+    if (itPath === '/login' || itPath === '/area-riservata') continue;
+    add(itPath, itPath, itPath === '/' ? '/en' : '/en' + enPath, today, itPath === '/' ? '1.0' : '0.7');
+  }
+  // 产品详情
+  const products = db.prepare('SELECT slug, updated_at FROM products WHERE archived=0').all();
+  for (const p of products) {
+    add(`/prodotti/${p.slug}`, `/prodotti/${p.slug}`, `/en/products/${p.slug}`, (p.updated_at || today).slice(0, 10), '0.8');
+  }
+  // 已发布新闻
+  const posts = db.prepare("SELECT slug, locale, published_at FROM posts WHERE status='published'").all();
+  for (const p of posts) {
+    add(`/news/${p.slug}`, `/news/${p.slug}`, `/en/news/${p.slug}`, (p.published_at || today).slice(0, 10), '0.6');
+  }
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls.join('\n')}\n</urlset>`);
 });
 
 module.exports = router;

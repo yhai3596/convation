@@ -1,5 +1,8 @@
 <%- include('partials/head') %>
 <%- include('partials/nav') %>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"NewsArticle","headline":"<%= post.title.replace(/"/g,'&quot;') %>","datePublished":"<%= post.published_at %>","author":{"@type":"Organization","name":"Convation"},"publisher":{"@type":"Organization","name":"Convation","url":"https://www.convation.it"},"articleSection":"<%= post.category %>","inLanguage":"<%= post.locale || 'it' %>"}
+</script>
 
 <div class="container-narrow">
 

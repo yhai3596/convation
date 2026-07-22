@@ -1,6 +1,23 @@
 <% if (typeof noAssistant === 'undefined' || !noAssistant) { %>
 <%- include('assistant') %>
 <% } %>
+<% const CEN = (typeof locale !== 'undefined' && locale === 'en'); %>
+<div id="cookie-banner" hidden style="position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--color-accent-900);color:#DCE6F0;padding:16px clamp(20px,5vw,72px);display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+  <p style="margin:0;font-size:13px;max-width:80ch;line-height:1.5"><%= CEN
+    ? 'We use only technical cookies (session, preferences) and self-hosted anonymous statistics. No profiling or advertising. See our '
+    : 'Utilizziamo solo cookie tecnici (sessione, preferenze) e statistiche anonime auto-ospitate. Nessun cookie di profilazione o pubblicitario. Vedi la ' %><a href="<%= link('/privacy') %>" style="color:#fff;text-decoration:underline"><%= CEN ? 'privacy policy' : 'privacy policy' %></a>.</p>
+  <button type="button" id="cookie-accept" class="btn btn-primary" style="flex:none"><%= CEN ? 'OK' : 'Accetta' %></button>
+</div>
+<script>
+(function () {
+  try { if (!localStorage.getItem('conv-cookie-ok')) document.getElementById('cookie-banner').hidden = false; } catch (e) {}
+  var btn = document.getElementById('cookie-accept');
+  if (btn) btn.addEventListener('click', function () {
+    try { localStorage.setItem('conv-cookie-ok', '1'); } catch (e) {}
+    document.getElementById('cookie-banner').hidden = true;
+  });
+})();
+</script>
 <script src="/js/analytics.js?v=<%= assetVer %>" defer></script>
 <script src="/js/assistant.js?v=<%= assetVer %>" defer></script>
 </body>
