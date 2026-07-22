@@ -1,0 +1,50 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <% const EN = (typeof locale !== 'undefined' && locale === 'en'); %>
+  <section class="page-hero" style="padding-bottom:28px">
+    <span class="kicker"><a href="<%= link('/prodotti') %>" style="color:inherit;text-decoration:none">Prodotti</a> · <%= p.category === 'heatpump' ? ct('home.cat_hp_title') : ct('home.cat_ac_title') %></span>
+    <h1><%= EN && p.name_en ? p.name_en : p.name_it %> <span class="eei<%- p.efficiency === 'A++' ? ' e2' : '' %>" style="font-size:14px;vertical-align:middle"><%= p.efficiency %></span></h1>
+    <p class="lede"><%= EN && p.desc_en ? p.desc_en : p.desc_it %></p>
+  </section>
+
+  <section style="padding:0 0 42px">
+    <div class="grid-about" style="padding:0">
+      <div>
+        <div class="img-slot" style="aspect-ratio:4/3;border-radius:var(--radius-lg)"><span><%= p.slug.toUpperCase() %></span></div>
+        <p style="font-size:12px;color:var(--color-neutral-500);margin-top:8px"><%= EN ? 'Product photo coming soon.' : 'Foto prodotto in arrivo.' %></p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 14px;font-size:18px"><%= EN ? 'Technical specifications' : 'Specifiche tecniche' %></h3>
+        <table class="table">
+          <tbody>
+            <% for (const [k, v] of specs) { %>
+            <tr><td style="color:var(--color-neutral-600)"><%= k %></td><td style="text-align:right;font-weight:600;color:var(--color-heading)"><%= v %></td></tr>
+            <% } %>
+          </tbody>
+        </table>
+
+        <% if (docs.length > 0) { %>
+        <h3 style="margin:26px 0 8px;font-size:18px"><%= EN ? 'Documents' : 'Documenti' %></h3>
+        <% for (const d of docs) { %>
+        <div class="doc-row">
+          <span class="doc-type"><%= d.doctype %></span>
+          <span><%= EN && d.title_en ? d.title_en : d.title_it %></span>
+          <span class="doc-meta"><%= d.version %> · <%= d.size %></span>
+          <a href="<%= d.file %>" style="font-size:13px">PDF ↓</a>
+        </div>
+        <% } %>
+        <% } %>
+
+        <div style="display:flex;gap:12px;margin-top:26px;flex-wrap:wrap">
+          <a class="btn btn-primary" href="<%= link('/consulenza') %>" data-track="product_interest" data-track-meta="<%= p.slug %>" style="text-decoration:none"><%= EN ? 'Request a quote' : 'Richiedi preventivo' %></a>
+          <a class="btn btn-secondary" href="<%= link('/strumenti') %>" style="text-decoration:none"><%= EN ? 'Size it with our tools' : 'Dimensionalo con gli strumenti' %></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

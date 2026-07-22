@@ -139,6 +139,49 @@ CREATE TABLE IF NOT EXISTS agent_activity (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_activity_time ON agent_activity(created_at);
+-- Convation 产品目录（冷暖双品类，双语字段）
+CREATE TABLE IF NOT EXISTS products (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  no INTEGER NOT NULL DEFAULT 0,
+  slug TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL DEFAULT 'heatpump',
+  name_it TEXT NOT NULL,
+  name_en TEXT NOT NULL DEFAULT '',
+  desc_it TEXT NOT NULL DEFAULT '',
+  desc_en TEXT NOT NULL DEFAULT '',
+  specs_json TEXT NOT NULL DEFAULT '{}',
+  efficiency TEXT NOT NULL DEFAULT '',
+  image TEXT NOT NULL DEFAULT '',
+  archived INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+-- Convation 技术文档库（PDF，安装工高频）
+CREATE TABLE IF NOT EXISTS documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title_it TEXT NOT NULL,
+  title_en TEXT NOT NULL DEFAULT '',
+  product_id INTEGER,
+  doctype TEXT NOT NULL DEFAULT 'scheda',
+  file TEXT NOT NULL DEFAULT '',
+  lang TEXT NOT NULL DEFAULT 'it',
+  version TEXT NOT NULL DEFAULT '',
+  size TEXT NOT NULL DEFAULT '',
+  no INTEGER NOT NULL DEFAULT 0,
+  archived INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+-- AI 内容草稿队列（小龙虾/hermes 产出 → 人工审核发布）
+CREATE TABLE IF NOT EXISTS ai_drafts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  source TEXT NOT NULL DEFAULT 'agent',
+  type TEXT NOT NULL DEFAULT 'post',
+  payload_json TEXT NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'pending',
+  reviewed_by TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  reviewed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_drafts_status ON ai_drafts(status, created_at);
 `);
 
 // ---------- 增量迁移（线上库为既有 schema，只做加列，幂等） ----------
@@ -146,6 +189,7 @@ function addColumn(table, colDef) {
   try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${colDef}`); } catch (_) { /* 已存在 */ }
 }
 addColumn('posts', "created_by TEXT NOT NULL DEFAULT 'admin'");     // admin | ai | agent:<name>
+addColumn('posts', "locale TEXT NOT NULL DEFAULT 'it'");            // it | en（新闻分语言运营）
 addColumn('comments', 'agent_status TEXT');                          // NULL/pending=待自动处理 replied/skipped=已终态
 addColumn('courses', "cover_url TEXT NOT NULL DEFAULT ''");
 // 两段式删除：0=正常 1=已归档（前台隐藏、后台可恢复），归档态再删才物理移除。
@@ -170,82 +214,123 @@ const getSetting = (k, d = null) => {
 const setSetting = (k, v) =>
   db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k, String(v));
 
-// ---------- 内容种子（来自设计稿，站点初始内容；后续在管理后台维护） ----------
+// ---------- 内容种子（Convation 设计稿内容；后续在管理后台维护） ----------
 function seedContent() {
   if (db.prepare('SELECT COUNT(*) c FROM posts').get().c > 0) return;
 
-  const insPost = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at)
-    VALUES (@slug,@title,@category,@excerpt,@content_md,@read_minutes,'published',@published_at)`);
+  const insPost = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,locale)
+    VALUES (@slug,@title,@category,@excerpt,@content_md,@read_minutes,'published',@published_at,@locale)`);
   insPost.run({
-    slug: 'hvac-ai-landing-stuck-where',
-    title: '暖通制造企业的 AI 落地，卡在哪一步？',
-    category: '行业观察',
-    excerpt: '调研了十几家暖通企业后，我发现问题从来不是"没有工具"，而是业务与数据之间缺一个翻译者。这篇文章聊聊三种典型的卡点，以及各自的解法。',
+    slug: 'conto-termico-3-guida',
+    title: 'Conto Termico 3.0: come funziona e quanto puoi ottenere',
+    category: 'Incentivi',
+    excerpt: 'La guida chiara al principale incentivo per le pompe di calore: requisiti, percentuali, tempi di erogazione e errori da evitare.',
     content_md: [
-      '调研了十几家暖通企业之后，我发现 AI 落地的问题从来不是"没有工具"。工具从来都不缺——缺的是业务与数据之间的那个翻译者。这篇文章聊聊我看到的三种典型卡点。',
+      'Il Conto Termico 3.0 è oggi il modo più rapido per recuperare buona parte dell’investimento in una pompa di calore. In questa guida riassumiamo quello che serve sapere prima di partire.',
       '',
-      '## 卡点一：数据在，但没人问对问题',
+      '## Chi può accedere',
       '',
-      '大多数企业的 ERP 和 MES 里躺着足够多的数据，问题是提问的方式仍然是十年前的报表思维。AI 最擅长回答的问题，往往还没有被提出来。',
+      'Privati, condomini e imprese che sostituiscono un generatore a combustibile fossile con una pompa di calore nuova. L’incentivo si calcola sulla potenza e sull’efficienza del nuovo generatore.',
       '',
-      '## 卡点二：试点很热闹，流程没改变',
+      '## Quanto si ottiene',
       '',
-      '演示环境里的准确率再高，只要业务流程没有为 AI 让出一个位置，试点结束后一切照旧。',
+      'Fino al 65% della spesa ammissibile, erogato dal GSE in 2-5 rate annuali. La pratica si presenta entro 90 giorni dalla fine lavori.',
       '',
-      '## 卡点三：把 AI 当项目，而不是能力',
+      '## Gli errori più comuni',
       '',
-      '项目会结项，能力不会。真正落地的企业，都是把 AI 变成了岗位技能与日常工具。',
+      'Generatore non in elenco, documentazione incompleta, mancata registrazione ENEA. Per questo accompagniamo ogni cliente nella verifica di fattibilità prima dell’installazione.',
     ].join('\n'),
-    read_minutes: 8,
-    published_at: '2026-07-08',
-  });
-  insPost.run({
-    slug: 'ahri-competitive-analysis-workflow',
-    title: '用 AI 做 AHRI 竞品分析：我的完整工作流',
-    category: '工具方法',
-    excerpt: '从数据抓取到差异化定位，一条可以直接照抄的分析流水线——也是站内「AHRI 竞品分析」工具背后的方法论。',
-    content_md: '从数据抓取、清洗对齐，到参数对比与差异化定位，这条流水线也是站内「AHRI 竞品分析」工具背后的方法论。\n\n> 完整正文整理中——可在管理后台「内容管理」中编辑发布。',
-    read_minutes: 12,
-    published_at: '2026-06-24',
-  });
-  insPost.run({
-    slug: 'patent-ai-what-engineers-do',
-    title: '专利检索交给 AI 之后，工程师该干什么',
-    category: '专利',
-    excerpt: 'AI 辅助专利分析不是替代，而是把人从检索里解放出来做判断。写给还在手动翻专利库的工程师们。',
-    content_md: 'AI 辅助专利分析不是替代，而是把人从检索里解放出来做判断：技术路线的取舍、权利要求的策略、竞争格局的解读。\n\n> 完整正文整理中——可在管理后台「内容管理」中编辑发布。',
     read_minutes: 6,
-    published_at: '2026-06-10',
+    published_at: '2026-07-15',
+    locale: 'it',
   });
   insPost.run({
-    slug: 'three-charts-for-management',
-    title: '给管理层讲 AI，我只讲这三张图',
-    category: '课程笔记',
-    excerpt: '企业内训里最有效的三个心智模型：能力边界图、结合点地图、推进路线图。',
-    content_md: '企业内训里最有效的三个心智模型：能力边界图（AI 能做什么/不能做什么）、结合点地图（业务里哪些环节接得上）、推进路线图（先做什么后做什么）。\n\n> 完整正文整理中——可在管理后台「内容管理」中编辑发布。',
+    slug: 'pompa-di-calore-o-caldaia',
+    title: 'Pompa di calore o caldaia a condensazione: il confronto onesto',
+    category: 'Guide',
+    excerpt: 'Costi, consumi, comfort e incentivi a confronto. Quando conviene l’una e quando ha ancora senso l’altra.',
+    content_md: 'Costo iniziale, costo annuale in bolletta, comfort d’uso e accesso agli incentivi: mettiamo in fila i numeri reali di un appartamento di 100 m².\n\n> Articolo in completamento — modificabile dal pannello di amministrazione.',
+    read_minutes: 8,
+    published_at: '2026-07-05',
+    locale: 'it',
+  });
+  insPost.run({
+    slug: 'f-gas-2026-cosa-cambia',
+    title: 'Normativa F-Gas 2026: cosa cambia per climatizzatori e installatori',
+    category: 'Normativa',
+    excerpt: 'Refrigeranti A2L, obblighi di certificazione e scorte: quello che tecnici e clienti devono sapere quest’anno.',
+    content_md: 'La transizione ai refrigeranti a basso GWP entra nel vivo: cosa significa per i nuovi climatizzatori R32/A2L e per chi li installa.\n\n> Articolo in completamento — modificabile dal pannello di amministrazione.',
     read_minutes: 5,
-    published_at: '2026-05-28',
+    published_at: '2026-06-20',
+    locale: 'it',
+  });
+  insPost.run({
+    slug: 'heat-pump-incentives-italy-2026',
+    title: 'Heat pump incentives in Italy: a 2026 practical guide',
+    category: 'Incentives',
+    excerpt: 'Conto Termico 3.0 and 50% deductions explained for international homeowners and installers working in Italy.',
+    content_md: 'A practical English overview of the main Italian incentives for heat pumps and air conditioning upgrades.\n\n> Article in progress — editable from the admin panel.',
+    read_minutes: 7,
+    published_at: '2026-07-10',
+    locale: 'en',
   });
 
   const insTool = db.prepare('INSERT INTO tools(no,name,description,status,url) VALUES (?,?,?,?,?)');
-  insTool.run(1, 'HVAC Tool', '暖通工程计算与选型辅助工具：制冷剂物性、焓湿图、水力与能耗计算等，持续扩充中。', 'live', 'https://hvac.geopro.cc');
-  insTool.run(2, 'AHRI 竞品分析', '基于 AHRI 认证数据的竞品数据查询与竞品动态跟踪。', 'live', 'https://ahri.geopro.cc');
-  insTool.run(3, '北美市场竞品分析', '面向北美暖通市场的竞品情报与分析。具体功能介绍待产品文档补充。', 'live', '');
-  insTool.run(4, '专利 AI 辅助助手', 'AI 辅助的专利技术交底书撰写系统：从技术要点到交底书初稿。', 'live', 'https://aipatent.lovable.app');
-  insTool.run(5, '企业财报解读', '企业财报解读与财务分析训练室：读懂三大报表、拆解关键财务指标，边学边练。', 'live', 'https://finstar.geopro.cc');
+  const TOOLS = [
+    ['Refrigerant Properties', 'Proprietà di 12 refrigeranti a qualsiasi stato T-P, tabelle di saturazione e glide.', 'https://hvac.geopro.cc/refprops.html'],
+    ['P-h Cycle Calculator', 'Ciclo frigorifero: COP, capacità, temperatura di mandata e diagramma P-h.', 'https://hvac.geopro.cc/phcalc.html'],
+    ['Psychrometrics', 'Aria umida: bulbo secco/umido, UR, punto di rugiada, entalpia.', 'https://hvac.geopro.cc/psychro.html'],
+    ['Hydronic Design', 'Perdite di carico tubazioni, dimensionamento pompe, verifica EC(H)R.', 'https://hvac.geopro.cc/hydronic.html'],
+    ['Duct Size & Loss', 'Dimensionamento canali a pari attrito e pressione statica totale.', 'https://hvac.geopro.cc/duct.html'],
+    ['Annual Energy & Cost', 'Stima kWh/anno e costi da SEER2/HSPF2, confronto tra due modelli.', 'https://hvac.geopro.cc/energy.html'],
+    ['Unit Converter', 'Conversione unità US/metriche: pressione, portata, potenza, energia.', 'https://hvac.geopro.cc/units.html'],
+    ['Inverter System Simulation', 'Simulazione pompa di calore inverter con diagramma P-h animato.', 'https://hvac.geopro.cc/sim.html'],
+    ['A2L & EPA 608 Quiz', 'Quiz di autovalutazione su refrigeranti A2L e normativa EPA 608.', 'https://hvac.geopro.cc/quiz.html'],
+  ];
+  TOOLS.forEach((t, i) => insTool.run(i + 1, t[0], t[1], 'live', t[2]));
 
-  const insCourse = db.prepare('INSERT INTO courses(no,title,description,lectures,price_cents,status,tag,kicker) VALUES (?,?,?,?,?,?,?,?)');
-  insCourse.run(1, '制造业 AI 入门：从业务出发', '给非技术背景的管理者与业务骨干：AI 能做什么、不能做什么、怎么选第一个落地场景。', 12, 29900, 'live', '热门', '已上线 · 12 讲');
-  insCourse.run(2, 'AI 竞品分析实战工作流', '以 AHRI 与北美市场为例，手把手搭建一条 AI 驱动的竞品情报流水线。', 8, 49900, 'live', '进阶', '已上线 · 8 讲');
-  insCourse.run(3, '专利工作中的 AI 助手', 'AI 辅助专利检索、分析与撰写的完整方法。上线后通知我 →', null, null, 'coming', '', '筹备中');
+  const insProduct = db.prepare(`INSERT INTO products(no,slug,category,name_it,name_en,desc_it,desc_en,specs_json,efficiency)
+    VALUES (@no,@slug,@category,@name_it,@name_en,@desc_it,@desc_en,@specs_json,@efficiency)`);
+  insProduct.run({
+    no: 1, slug: 'cv-therma-8', category: 'heatpump',
+    name_it: 'Convation THERMA 8', name_en: 'Convation THERMA 8',
+    desc_it: 'Pompa di calore aria-acqua monoblocco da 8 kW per ville unifamiliari. Riscaldamento, raffrescamento e ACS fino a 60 °C.',
+    desc_en: '8 kW monobloc air-to-water heat pump for detached homes. Heating, cooling and DHW up to 60 °C.',
+    specs_json: JSON.stringify({ 'Potenza termica': '8,0 kW', 'Refrigerante': 'R290', 'COP (A7/W35)': '4,9', 'Alimentazione': '230V monofase', 'Rumorosità': '42 dB(A) a 1 m' }),
+    efficiency: 'A+++',
+  });
+  insProduct.run({
+    no: 2, slug: 'cv-therma-16t', category: 'heatpump',
+    name_it: 'Convation THERMA 16T', name_en: 'Convation THERMA 16T',
+    desc_it: 'Trifase da 16 kW per edifici grandi e piccole attività commerciali. Cascata fino a 4 unità.',
+    desc_en: 'Three-phase 16 kW unit for large buildings and small businesses. Cascade up to 4 units.',
+    specs_json: JSON.stringify({ 'Potenza termica': '16,0 kW', 'Refrigerante': 'R290', 'COP (A7/W35)': '4,7', 'Alimentazione': '400V trifase', 'Cascata': 'fino a 4 unità' }),
+    efficiency: 'A+++',
+  });
+  insProduct.run({
+    no: 3, slug: 'cv-aria-35', category: 'ac',
+    name_it: 'Convation ARIA 35', name_en: 'Convation ARIA 35',
+    desc_it: 'Climatizzatore split inverter 3,5 kW (12.000 BTU) con Wi-Fi integrato e filtro antipolline.',
+    desc_en: '3.5 kW (12,000 BTU) inverter split air conditioner with built-in Wi-Fi and pollen filter.',
+    specs_json: JSON.stringify({ 'Potenza freddo': '3,5 kW', 'Refrigerante': 'R32', 'SEER': '8,5', 'Alimentazione': '230V monofase', 'Rumorosità interna': '19 dB(A)' }),
+    efficiency: 'A++',
+  });
+  insProduct.run({
+    no: 4, slug: 'cv-aria-multi-2x25', category: 'ac',
+    name_it: 'Convation ARIA DUAL 2×2,5', name_en: 'Convation ARIA DUAL 2×2.5',
+    desc_it: 'Dual split 2×2,5 kW con una sola unità esterna: due stanze, un ingombro.',
+    desc_en: '2×2.5 kW dual split with a single outdoor unit: two rooms, one footprint.',
+    specs_json: JSON.stringify({ 'Potenza freddo': '2×2,5 kW', 'Refrigerante': 'R32', 'SEER': '7,8', 'Unità esterne': '1', 'Rumorosità interna': '20 dB(A)' }),
+    efficiency: 'A++',
+  });
 
   const insCase = db.prepare('INSERT INTO cases(org,title,description,metric_value,metric_label,sort) VALUES (?,?,?,?,?,?)');
-  insCase.run('某暖通设备制造企业 · 华东', 'AI 竞品情报体系：从人工月报到自动周报',
-    '基于 AHRI 数据搭建竞品分析流水线，市场部从每月手工整理一次竞品，变为每周自动生成对比报告。', '85%', '情报整理工时下降', 1);
-  insCase.run('某压缩机企业 · 出海北美', '北美市场进入前的 AI 竞品扫描',
-    '对目标细分市场的主要竞品做参数、渠道与定价的系统性扫描，支撑产品定义与定价决策。', '6 周', '完成全部扫描', 2);
-  insCase.run('某零部件企业 · 研发部门', '专利工作流引入 AI 辅助',
-    '检索、对比与交底书初稿由 AI 辅助完成，工程师专注技术判断与权利要求策略。', '3×', '专利产出效率', 3);
+  insCase.run('Villa unifamiliare · Monza (MB)', 'Caldaia a gas → THERMA 8 con Conto Termico',
+    'Sostituzione caldaia a gas del 2008 con pompa di calore da 8 kW e radiatori esistenti. Pratica GSE gestita dal nostro team.', '-52%', 'spesa annuale riscaldamento', 1);
+  insCase.run('Condominio 12 unità · Bergamo (BG)', 'Climatizzazione estiva multi-appartamento',
+    'Installazione di 12 split ARIA 35 in 6 settimane, con pratiche condominiali e detrazione 50%.', 'A++', 'classe energetica media', 2);
+  insCase.run('Agriturismo · Langhe (CN)', 'Riscaldamento e ACS con THERMA 16T',
+    'Pompa di calore trifase per 280 m² di struttura ricettiva: riscaldamento a pavimento e acqua calda per 8 camere.', '24/7', 'monitoraggio e assistenza', 3);
 
   if (getSetting('agent_autoreply') === null) setSetting('agent_autoreply', '1');
 }
@@ -265,12 +350,12 @@ function seedDefaults() {
 // ---------- 管理员种子 ----------
 function seedAdmin() {
   if (db.prepare("SELECT COUNT(*) c FROM users WHERE role='admin'").get().c > 0) return;
-  const email = process.env.ADMIN_EMAIL || 'admin@alan-ai.local';
+  const email = process.env.ADMIN_EMAIL || 'admin@convation.it';
   let password = process.env.ADMIN_PASSWORD;
   let generated = false;
   if (!password) { password = crypto.randomBytes(9).toString('base64url'); generated = true; }
   db.prepare("INSERT INTO users(email,name,password_hash,role) VALUES (?,?,?,'admin')")
-    .run(email, 'Alan', bcrypt.hashSync(password, 10));
+    .run(email, 'Admin', bcrypt.hashSync(password, 10));
   if (generated) {
     const credFile = path.join(DATA_DIR, 'admin-credentials.txt');
     fs.writeFileSync(credFile, `管理员账号（首次启动自动生成，请尽快登录后妥善保存/修改）\nemail: ${email}\npassword: ${password}\n`);
@@ -302,28 +387,25 @@ function seedDemo() {
   }
 
   // 设计稿文章页的示例评论（含 Agent 自动回复示例）
-  const post = db.prepare('SELECT id FROM posts WHERE slug=?').get('hvac-ai-landing-stuck-where');
+  const post = db.prepare('SELECT id FROM posts WHERE slug=?').get('conto-termico-3-guida');
   if (post) {
     const insC = db.prepare(`INSERT INTO comments(post_id,user_id,author_name,body,parent_id,is_agent,agent_label,created_at)
       VALUES (?,?,?,?,?,?,?,datetime('now','-'||?||' days'))`);
-    const c1 = insC.run(post.id, userIds['王工'], '王工',
-      '卡点二太真实了。我们去年做的质检 AI 试点就是这样，演示效果很好，但产线上没人愿意改流程。请问 AHRI 竞品分析工具支持热泵品类吗？', null, 0, null, 6);
-    insC.run(post.id, null, 'Alan',
-      '支持的。AHRI 竞品分析工具目前覆盖 AHRI 目录中的热泵与单元机品类，登录后在「品类」筛选中选择 Heat Pump 即可。详细说明见工具页文档。', c1.lastInsertRowid, 1, 'AI 自动回复 · via 小龙虾', 6);
-    const c2 = insC.run(post.id, userIds['Amy Zhou'], 'Amy Zhou',
-      '"把 AI 当能力而不是项目"——这句话准备贴在办公室了。期待展开写写怎么建内部 AI 能力。', null, 0, null, 5);
-    insC.run(post.id, null, 'Alan', '已经在写了，下一篇就是。会结合两家企业内训的真实案例。', c2.lastInsertRowid, 0, '本人回复', 4);
-    const c3 = insC.run(post.id, userIds['刘工'], '刘工', 'AI 诊断问卷大概要填多久？需要准备什么材料吗？', null, 0, null, 3);
-    insC.run(post.id, null, 'Alan',
-      '约 10 分钟，不需要提前准备材料——问卷围绕业务现状与目标，凭日常了解即可作答。完成后诊断报告会发送到您的邮箱。入口在「企业AI服务」页。', c3.lastInsertRowid, 1, 'AI 自动回复 · via 小龙虾', 3);
+    const c1 = insC.run(post.id, userIds['王工'], 'Marco B.',
+      'Guida molto chiara. Per un condominio di 8 unità serve la pratica unica o una per unità? Grazie.', null, 0, null, 6);
+    insC.run(post.id, null, 'Convation',
+      'Dipende dall’impianto: con centrale termica comune la pratica è unica a nome del condominio; con generatori autonomi ogni unità presenta la sua. Contattaci per una verifica gratuita.', c1.lastInsertRowid, 1, 'AI 自动回复 · via 小龙虾', 6);
+    const c2 = insC.run(post.id, userIds['Amy Zhou'], 'Giulia R.',
+      'Finalmente una spiegazione senza tecnicismi. Condivisa con il mio installatore.', null, 0, null, 5);
+    insC.run(post.id, null, 'Convation', 'Grazie Giulia! Il prossimo articolo sarà proprio sulla scelta tra Conto Termico e detrazione 50%.', c2.lastInsertRowid, 0, '官方回复', 4);
   }
 
   // 30 天内的模拟访问事件，让看板可视化有数据
   const insEvt = db.prepare(`INSERT INTO analytics_events(sid,user_id,type,path,ref_class,meta,created_at)
     VALUES (?,?,?,?,?,?,datetime('now','-'||?||' minutes'))`);
-  const paths = ['/', '/', '/', '/tools', '/tools', '/services', '/courses', '/blog', '/article/hvac-ai-landing-stuck-where', '/cases', '/about', '/login'];
-  const refs = ['搜索引擎', '搜索引擎', '搜索引擎', '搜索引擎', '微信 / 公众号', '微信 / 公众号', '直接访问', '直接访问', 'LinkedIn / 其他'];
-  const toolNames = ['AHRI 竞品分析', 'HVAC Tool', 'HVAC Tool', '专利 AI 辅助助手', 'AHRI 竞品分析', '北美市场竞品分析'];
+  const paths = ['/', '/', '/', '/prodotti', '/prodotti', '/strumenti', '/detrazioni', '/news/conto-termico-3-guida', '/referenze', '/chi-siamo', '/consulenza', '/login'];
+  const refs = ['搜索引擎', '搜索引擎', '搜索引擎', '搜索引擎', '社交媒体', '社交媒体', '直接访问', '直接访问', 'AI 引擎引用'];
+  const toolNames = ['Refrigerant Properties', 'P-h Cycle Calculator', 'Psychrometrics', 'Hydronic Design', 'Annual Energy & Cost', 'Unit Converter'];
   const seedEvents = db.transaction(() => {
     for (let d = 29; d >= 0; d--) {
       const sessions = 6 + Math.floor(Math.random() * 6) + Math.floor((29 - d) / 4);
@@ -337,12 +419,11 @@ function seedDemo() {
         }
         if (Math.random() < 0.35) {
           const minutesAgo = d * 1440 + Math.floor(Math.random() * 1200);
-          insEvt.run(sid, null, 'tool_click', '/tools', ref, toolNames[Math.floor(Math.random() * toolNames.length)], minutesAgo);
+          insEvt.run(sid, null, 'tool_click', '/strumenti', ref, toolNames[Math.floor(Math.random() * toolNames.length)], minutesAgo);
         }
         if (Math.random() < 0.08) insEvt.run(sid, null, 'register', '/login', ref, '', d * 1440 + 60);
-        if (Math.random() < 0.05) insEvt.run(sid, null, 'diagnosis_submit', '/diagnosis', ref, '', d * 1440 + 30);
         if (Math.random() < 0.5) {
-          insEvt.run(sid, null, 'read_complete', '/article/hvac-ai-landing-stuck-where', ref, 'hvac-ai-landing-stuck-where', d * 1440 + 20);
+          insEvt.run(sid, null, 'read_complete', '/news/conto-termico-3-guida', ref, 'conto-termico-3-guida', d * 1440 + 20);
         }
       }
     }

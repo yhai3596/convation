@@ -11,22 +11,11 @@
 
   <section style="padding:14px 0 70px">
     <div class="svc-grid">
-      <% const tools = [
-        ['Refrigerant Properties','Proprietà di 12 refrigeranti a qualsiasi stato T-P, tabelle di saturazione.','https://hvac.geopro.cc/refprops.html'],
-        ['P-h Cycle Calculator','Ciclo frigorifero: COP, capacità, temperatura di mandata e diagramma P-h.','https://hvac.geopro.cc/phcalc.html'],
-        ['Psychrometrics','Aria umida: bulbo secco/umido, UR, punto di rugiada, entalpia.','https://hvac.geopro.cc/psychro.html'],
-        ['Hydronic Design','Perdite di carico tubazioni, dimensionamento pompe, verifica EC(H)R.','https://hvac.geopro.cc/hydronic.html'],
-        ['Duct Size & Loss','Dimensionamento canali a pari attrito, pressione statica totale.','https://hvac.geopro.cc/duct.html'],
-        ['Annual Energy & Cost','Stima kWh/anno e costi da SEER2/HSPF2, confronto tra due modelli.','https://hvac.geopro.cc/energy.html'],
-        ['Unit Converter','Conversione unità US/metriche: pressione, portata, potenza, energia.','https://hvac.geopro.cc/units.html'],
-        ['Inverter System Simulation','Simulazione pompa di calore inverter con diagramma P-h animato.','https://hvac.geopro.cc/sim.html'],
-        ['A2L & EPA 608 Quiz','Quiz di autovalutazione su refrigeranti A2L e normativa EPA 608.','https://hvac.geopro.cc/quiz.html'],
-      ]; %>
-      <% for (const [name, desc, url] of tools) { %>
-      <a class="svc-card" href="<%= url %>" target="_blank" rel="noopener" data-track="tool_click" data-track-meta="<%= name %>">
+      <% for (const t of tools) { %>
+      <a class="svc-card" href="<%= t.url %>" target="_blank" rel="noopener" data-track="tool_click" data-track-meta="<%= t.name %>">
         <span class="card-kicker">hvac.geopro.cc ↗</span>
-        <h4><%= name %></h4>
-        <p><%= desc %></p>
+        <h4><%= t.name %></h4>
+        <p><%= t.description %></p>
       </a>
       <% } %>
     </div>

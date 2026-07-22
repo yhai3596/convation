@@ -8,25 +8,35 @@
     <p class="lede"><%- ct('prodotti.hero_body') %></p>
   </section>
 
-  <section id="pompe-di-calore" style="padding:28px 0 42px">
-    <div class="cat-card" style="--cat-color:var(--color-accent-2-500);--cat-bg:var(--color-accent-2-100);--cat-deep:var(--color-accent-2-800)">
-      <span class="cc-tag"><%- ct('home.cat_hp_tag') %></span>
-      <h3><%- ct('prodotti.hp_title') %></h3>
-      <p><%- ct('prodotti.hp_body') %></p>
-      <p style="padding-left:14px;margin-top:16px"><span class="eei">A+++</span> <span class="eei e2">A++</span> <span style="font-size:12.5px;color:var(--color-neutral-600);margin-left:8px">4–16 kW · R290 / R32 · ACS integrata</span></p>
+  <% const EN = (typeof locale !== 'undefined' && locale === 'en'); %>
+  <% const groups = [
+    ['heatpump', 'pompe-di-calore', 'prodotti.hp_title', 'prodotti.hp_body', 'var(--color-accent-2-500)', 'var(--color-accent-2-100)', 'var(--color-accent-2-800)'],
+    ['ac', 'climatizzatori', 'prodotti.ac_title', 'prodotti.ac_body', 'var(--color-cool-500)', 'var(--color-cool-100)', 'var(--color-cool-800)'],
+  ]; %>
+  <% for (const [cat, anchor, tk, bk, col, bg, deep] of groups) { %>
+  <section id="<%= anchor %>" style="padding:20px 0 28px">
+    <div style="border-left:5px solid <%- col %>;padding-left:16px;margin-bottom:20px">
+      <span class="cc-tag" style="background:<%- bg %>;color:<%- deep %>;margin:0"><%= cat === 'heatpump' ? ct('home.cat_hp_tag') : ct('home.cat_ac_tag') %></span>
+      <h2 style="font-size:30px;margin:10px 0 6px"><%- ct(tk) %></h2>
+      <p style="margin:0;color:var(--color-neutral-700);max-width:70ch"><%- ct(bk) %></p>
+    </div>
+    <div class="svc-grid">
+      <% for (const p of products.filter(x => x.category === cat)) { %>
+      <a class="svc-card" href="<%= link('/prodotti') %>/<%= p.slug %>" data-track="cta_click" data-track-meta="product_<%= p.slug %>">
+        <span style="display:flex;justify-content:space-between;align-items:center">
+          <span class="eei<%- p.efficiency === 'A++' ? ' e2' : '' %>"><%= p.efficiency %></span>
+          <span style="font-size:11px;color:var(--color-neutral-500)"><%= p.slug.toUpperCase() %></span>
+        </span>
+        <h4><%= EN && p.name_en ? p.name_en : p.name_it %></h4>
+        <p><%= EN && p.desc_en ? p.desc_en : p.desc_it %></p>
+        <span class="tc-go" style="display:inline-block;margin-top:10px;font-size:13.5px"><%- ct('ui.read_more') %></span>
+      </a>
+      <% } %>
     </div>
   </section>
+  <% } %>
 
-  <section id="climatizzatori" style="padding:0 0 42px">
-    <div class="cat-card" style="--cat-color:var(--color-cool-500);--cat-bg:var(--color-cool-100);--cat-deep:var(--color-cool-800)">
-      <span class="cc-tag"><%- ct('home.cat_ac_tag') %></span>
-      <h3><%- ct('prodotti.ac_title') %></h3>
-      <p><%- ct('prodotti.ac_body') %></p>
-      <p style="padding-left:14px;margin-top:16px"><span class="eei e2">A++</span> <span class="eei e3">A+</span> <span style="font-size:12.5px;color:var(--color-neutral-600);margin-left:8px">2,5–7 kW · R32 · Wi-Fi integrato</span></p>
-    </div>
-  </section>
-
-  <section class="band-dark" style="border-radius:var(--radius-lg);padding:32px;margin-bottom:64px">
+  <section class="band-dark" style="border-radius:var(--radius-lg);padding:32px;margin:24px 0 64px">
     <p style="margin:0;font-size:15px;max-width:70ch"><%- ct('prodotti.note') %></p>
     <a class="btn btn-primary" href="<%= link('/login') %>" style="text-decoration:none;margin-top:18px"><%- ct('ui.area_riservata') %> →</a>
   </section>

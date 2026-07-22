@@ -9,6 +9,7 @@
   </section>
 
   <section style="padding:14px 0 70px">
+    <% if (documents.length === 0) { %>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px">
       <span class="tag tag-accent">Schede tecniche</span>
       <span class="tag tag-neutral">Manuali installazione</span>
@@ -19,6 +20,18 @@
       <p style="margin:0;font-size:15px;color:var(--color-neutral-700)"><%- ct('docs.empty_note') %></p>
       <a class="btn btn-secondary" href="mailto:<%- ct('site.email_support') %>" style="text-decoration:none;margin-top:16px"><%- ct('site.email_support') %></a>
     </div>
+    <% } else { %>
+    <div>
+      <% for (const d of documents) { %>
+      <div class="doc-row">
+        <span class="doc-type"><%= d.doctype %></span>
+        <span><%= (typeof locale !== 'undefined' && locale === 'en' && d.title_en) ? d.title_en : d.title_it %></span>
+        <span class="doc-meta"><%= d.lang.toUpperCase() %> · v<%= d.version %> · <%= d.size %></span>
+        <a href="<%= d.file %>" style="font-size:13px;white-space:nowrap">PDF ↓</a>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
   </section>
 
   <%- include('partials/footer') %>

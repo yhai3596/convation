@@ -1,5 +1,5 @@
-// 前台页面渲染（Convation sitemap，DESIGN.md §11 + i18n 双挂载）
-// IT：/ 前缀，意语语义 slug；EN：/en 前缀，英语语义 slug（hreflang 互链）
+// 前台页面渲染（Convation sitemap + i18n 双挂载 + 内容查库渲染）
+// IT：/ 前缀；EN：/en 前缀（各自语义 slug，hreflang 互链）
 const express = require('express');
 const { marked } = require('marked');
 const { db } = require('../db');
@@ -9,29 +9,33 @@ const router = express.Router();
 const SITE = 'Convation';
 const ORIGIN = process.env.SITE_ORIGIN || 'https://www.convation.it';
 
-// [itPath, enPath, view, active, titleIt, titleEn]
+// [itPath, enPath, view, active, titleIt, titleEn] —— 纯静态页（REGISTRY 文案）
 const PAGES = [
   ['/', '/', 'home', 'home', 'Pompe di calore e climatizzatori', 'Heat pumps & air conditioners'],
   ['/chi-siamo', '/about-us', 'chi-siamo', 'chi-siamo', 'Chi siamo', 'About us'],
-  ['/prodotti', '/products', 'prodotti', 'prodotti', 'Prodotti', 'Products'],
-  ['/documentazione', '/technical-docs', 'documentazione', 'documentazione', 'Documentazione tecnica', 'Technical documentation'],
-  ['/referenze', '/references', 'referenze', 'referenze', 'Referenze', 'References'],
-  ['/strumenti', '/hvac-tools', 'strumenti', 'strumenti', 'Strumenti HVAC', 'HVAC tools'],
   ['/detrazioni', '/incentives', 'detrazioni', '', 'Detrazioni e incentivi', 'Incentives & tax deductions'],
   ['/assistenza', '/support', 'assistenza', 'assistenza', 'Assistenza', 'Support'],
   ['/consulenza', '/consultation', 'consulenza', '', 'Consulenza gratuita', 'Free consultation'],
-  ['/news', '/news', 'news', '', 'News', 'News'],
   ['/contatti', '/contact', 'contatti', '', 'Contatti', 'Contact us'],
   ['/privacy', '/privacy-policy', 'privacy', '', 'Privacy e cookie policy', 'Privacy & cookie policy'],
 ];
-const itToEn = new Map(PAGES.map(p => [p[0], p[1]]));
-const enToIt = new Map(PAGES.map(p => [p[1], p[0]]));
+// 语义 slug 对照（含数据页，供 hreflang/link() 使用）
+const SLUGS = [
+  ...PAGES,
+  ['/prodotti', '/products'],
+  ['/documentazione', '/technical-docs'],
+  ['/referenze', '/references'],
+  ['/strumenti', '/hvac-tools'],
+  ['/news', '/news'],
+  ['/login', '/login'],
+];
+const itToEn = new Map(SLUGS.map(p => [p[0], p[1]]));
+const enToIt = new Map(SLUGS.map(p => [p[1], p[0]]));
 
 function makeRouter(locale) {
   const r = express.Router();
   const idx = locale === 'en' ? 1 : 0;
 
-  // locale 绑定 + hreflang 互链路径
   r.use((req, res, next) => {
     const loc = siteContent.forLocale(locale);
     res.locals.locale = loc.locale;
@@ -45,7 +49,6 @@ function makeRouter(locale) {
     res.locals.hrefIt = ORIGIN + res.locals.pathIt;
     res.locals.hrefEn = ORIGIN + '/en' + (res.locals.pathEn === '/' ? '' : res.locals.pathEn);
     res.locals.urlprefix = locale === 'en' ? '/en' : '';
-    // 模板跨页链接助手：按当前 locale 解析对侧 slug
     res.locals.link = (itPath) => {
       if (locale === 'it') return itPath;
       const en = itToEn.get(itPath);
@@ -54,14 +57,86 @@ function makeRouter(locale) {
     next();
   });
 
+  const pathOf = (itPath) => (locale === 'en' ? (itToEn.get(itPath) || itPath) : itPath);
+
+  // —— 纯静态页 ——
   for (const [itPath, enPath, view, active, titleIt, titleEn] of PAGES) {
-    const path = locale === 'en' ? enPath : itPath;
     const title = `${locale === 'en' ? titleEn : titleIt} · ${SITE}`;
-    r.get(path === '/' ? '/' : path, (req, res) => res.render(view, { title, active }));
+    r.get(locale === 'en' ? enPath : itPath, (req, res) => {
+      if (view === 'home') {
+        const posts = db.prepare("SELECT * FROM posts WHERE status='published' AND locale=? ORDER BY published_at DESC LIMIT 3").all(locale);
+        return res.render(view, { title, active, posts });
+      }
+      res.render(view, { title, active });
+    });
   }
 
-  // 新闻详情（P4 接 posts.locale；当前双语同库渲染）
-  r.get('/news/:slug', (req, res) => {
+  // —— 产品列表 ——
+  r.get(pathOf('/prodotti'), (req, res) => {
+    const products = db.prepare('SELECT * FROM products WHERE archived=0 ORDER BY category, no').all();
+    res.render('prodotti', {
+      title: `${locale === 'en' ? 'Products' : 'Prodotti'} · ${SITE}`,
+      active: 'prodotti',
+      products,
+    });
+  });
+
+  // —— 产品详情 ——
+  r.get(pathOf('/prodotti') + '/:slug', (req, res) => {
+    const p = db.prepare('SELECT * FROM products WHERE slug=? AND archived=0').get(req.params.slug);
+    if (!p) return res.status(404).render('404', { title: 'Pagina non trovata', active: '' });
+    let specs = [];
+    try { specs = Object.entries(JSON.parse(p.specs_json || '{}')); } catch (_) { specs = []; }
+    const docs = db.prepare('SELECT * FROM documents WHERE product_id=? AND archived=0 ORDER BY no').all(p.id);
+    res.render('prodotto', {
+      title: `${locale === 'en' && p.name_en ? p.name_en : p.name_it} · ${SITE}`,
+      active: 'prodotti',
+      p, specs, docs,
+    });
+  });
+
+  // —— 技术文档 ——
+  r.get(pathOf('/documentazione'), (req, res) => {
+    const documents = db.prepare('SELECT * FROM documents WHERE archived=0 ORDER BY doctype, no').all();
+    res.render('documentazione', {
+      title: `${locale === 'en' ? 'Technical documentation' : 'Documentazione tecnica'} · ${SITE}`,
+      active: 'documentazione',
+      documents,
+    });
+  });
+
+  // —— 案例 ——
+  r.get(pathOf('/referenze'), (req, res) => {
+    const cases = db.prepare('SELECT * FROM cases WHERE archived=0 ORDER BY sort').all();
+    res.render('referenze', {
+      title: `${locale === 'en' ? 'References' : 'Referenze'} · ${SITE}`,
+      active: 'referenze',
+      cases,
+    });
+  });
+
+  // —— 工具 ——
+  r.get(pathOf('/strumenti'), (req, res) => {
+    const tools = db.prepare('SELECT * FROM tools WHERE archived=0 ORDER BY no').all();
+    res.render('strumenti', {
+      title: `${locale === 'en' ? 'HVAC tools' : 'Strumenti HVAC'} · ${SITE}`,
+      active: 'strumenti',
+      tools,
+    });
+  });
+
+  // —— 新闻列表（按 locale 过滤） ——
+  r.get(pathOf('/news'), (req, res) => {
+    const posts = db.prepare("SELECT * FROM posts WHERE status='published' AND locale=? ORDER BY published_at DESC").all(locale);
+    res.render('news', {
+      title: `News · ${SITE}`,
+      active: '',
+      posts,
+    });
+  });
+
+  // —— 新闻详情 ——
+  r.get(pathOf('/news') + '/:slug', (req, res) => {
     const post = db.prepare("SELECT * FROM posts WHERE slug=? AND status='published'").get(req.params.slug);
     if (!post) return res.status(404).render('404', { title: 'Pagina non trovata', active: '' });
     db.prepare('UPDATE posts SET views = views + 1 WHERE id=?').run(post.id);

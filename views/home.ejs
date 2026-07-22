@@ -81,6 +81,24 @@
 </section>
 
 <div class="container">
+  <% if (typeof posts !== 'undefined' && posts.length > 0) { %>
+  <section style="padding:56px 0 8px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <span class="kicker" style="margin-bottom:0">News</span>
+      <a href="<%= link('/news') %>" style="font-size:14px"><%= (typeof locale !== 'undefined' && locale === 'en') ? 'All articles →' : 'Tutti gli articoli →' %></a>
+    </div>
+    <div class="grid-cards3" style="margin-top:22px">
+      <% for (const p of posts) { %>
+      <a href="<%= link('/news') %>/<%= p.slug %>" class="card" style="text-decoration:none;color:inherit;padding:20px;background:#fff">
+        <span class="card-kicker" style="font-feature-settings:'tnum' 1"><%= fmtDate(p.published_at) %> · <%= p.category %></span>
+        <span class="card-title" style="font-size:17px"><%= p.title %></span>
+        <span class="card-body"><%= p.excerpt %></span>
+      </a>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+
   <section style="padding:64px 0 72px;text-align:center">
     <h2 style="font-size:clamp(26px,3vw,34px);margin:0 auto;max-width:24ch"><%- ct('home.cta_title') %></h2>
     <p style="max-width:56ch;margin:18px auto 0;color:var(--color-neutral-700)"><%- ct('home.cta_body') %></p>

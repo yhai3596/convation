@@ -9,30 +9,24 @@
   </section>
 
   <section style="padding:14px 0 70px">
+    <% if (posts.length === 0) { %>
     <div class="card" style="align-items:flex-start;padding:42px 28px;background:var(--color-neutral-100)">
       <p style="margin:0;font-size:15px;color:var(--color-neutral-700)"><%- ct('news.empty_note') %></p>
-      <form id="news-subscribe" style="display:flex;gap:12px;margin-top:18px;max-width:440px;width:100%">
-        <input class="input" type="email" id="news-sub-email" placeholder="<%- ct('ui.form_email') %>" required style="flex:1">
-        <button type="submit" class="btn btn-primary"><%- ct('ui.send') %></button>
-      </form>
-      <p class="form-ok" id="news-sub-msg" style="margin-top:8px"></p>
     </div>
+    <% } else { %>
+    <div class="grid-cards3">
+      <% for (const p of posts) { %>
+      <a href="<%= link('/news') %>/<%= p.slug %>" class="card" style="text-decoration:none;color:inherit;padding:22px;background:#fff">
+        <span class="card-kicker" style="font-feature-settings:'tnum' 1"><%= fmtDate(p.published_at) %> · <%= p.category %></span>
+        <span class="card-title" style="font-size:19px"><%= p.title %></span>
+        <span class="card-body"><%= p.excerpt %></span>
+        <span class="card-meta"><%= p.read_minutes %> min</span>
+      </a>
+      <% } %>
+    </div>
+    <% } %>
   </section>
 
   <%- include('partials/footer') %>
 </div>
-<script>
-document.getElementById('news-subscribe').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var email = document.getElementById('news-sub-email').value.trim();
-  var msg = document.getElementById('news-sub-msg');
-  fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) })
-    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-    .then(function (res) {
-      msg.className = res.ok ? 'form-ok' : 'form-error';
-      msg.textContent = res.ok ? '<%- ct("ui.form_ok") %>' : (res.d.error || 'Errore');
-    })
-    .catch(function () { msg.className = 'form-error'; msg.textContent = 'Errore di rete, riprova.'; });
-});
-</script>
 <%- include('partials/tail') %>

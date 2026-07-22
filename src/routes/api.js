@@ -1,8 +1,7 @@
-// JSON API：认证 / 诊断 / 评论 / 助手 / 订阅留言 / 埋点
+// JSON API：认证 / 评论 / 助手 / 订阅留言 / 埋点
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { db } = require('../db');
-const report = require('../report');
 const agent = require('../agent');
 const mailer = require('../mailer');
 const analytics = require('../analytics');
@@ -64,34 +63,6 @@ router.post('/auth/logout', (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-// —— 企业 AI 诊断 ——
-router.post('/diagnosis', rateLimit('diag', 10, 600e3), async (req, res) => {
-  const { answers, company = '', email = '', sid = '' } = req.body || {};
-  if (!Array.isArray(answers) || answers.length !== report.QUESTIONS.length ||
-      answers.some((a, i) => !Number.isInteger(a) || a < 0 || a >= report.QUESTIONS[i].options.length)) {
-    return res.status(400).json({ error: '问卷答案不完整' });
-  }
-  const comp = String(company).trim().slice(0, 80);
-  const em = String(email).trim().toLowerCase();
-  if (!comp) return res.status(400).json({ error: '请填写企业名称' });
-  if (!EMAIL_RE.test(em)) return res.status(400).json({ error: '请填写有效的工作邮箱' });
-
-  const { report: rep, generator } = await report.generate(answers, comp);
-  const emailed = await mailer.sendDiagnosisReport(em, comp, rep) ? 1 : 0;
-
-  db.prepare(`INSERT INTO diagnosis_submissions(company,email,answers_json,level,spots,summary,report_json,generator,emailed)
-    VALUES (?,?,?,?,?,?,?,?,?)`)
-    .run(comp, em, JSON.stringify(answers), rep.level, rep.spots, rep.summary, JSON.stringify(rep), generator, emailed);
-  analytics.record({ sid, userId: req.session.user ? req.session.user.id : null, type: 'diagnosis_submit', path: '/diagnosis' });
-
-  res.json({
-    ok: true,
-    level: rep.level, levelDesc: rep.levelDesc, spots: rep.spots,
-    stages: rep.stages, integrationPoints: rep.integrationPoints,
-    summary: rep.summary, emailed: !!emailed, generator,
-  });
-});
-
 // —— 评论（登录后）+ Agent 自动回复 ——
 router.post('/comments', rateLimit('comment', 12, 600e3), requireLogin, async (req, res) => {
   const { post_id, body = '' } = req.body || {};
@@ -148,16 +119,17 @@ router.post('/message', rateLimit('msg', 10, 600e3), (req, res) => {
   res.json({ ok: true });
 });
 
-router.post('/course-interest', rateLimit('ci', 20, 600e3), (req, res) => {
-  const { course_id, sid = '' } = req.body || {};
-  const c = db.prepare('SELECT id,title FROM courses WHERE id=?').get(Number(course_id));
-  if (!c) return res.status(404).json({ error: '课程不存在' });
-  analytics.record({ sid, userId: req.session.user ? req.session.user.id : null, type: 'course_interest', path: '/courses', meta: c.title });
+// —— 产品咨询意向（SEO 转化埋点；详情页 CTA 触发） ——
+router.post('/product-interest', rateLimit('pi', 20, 600e3), (req, res) => {
+  const { product_id, sid = '' } = req.body || {};
+  const p = db.prepare('SELECT id,name_it FROM products WHERE id=? AND archived=0').get(Number(product_id));
+  if (!p) return res.status(404).json({ error: 'Prodotto non trovato' });
+  analytics.record({ sid, userId: req.session.user ? req.session.user.id : null, type: 'product_interest', path: '/prodotti', meta: p.name_it });
   res.json({ ok: true });
 });
 
 // —— 埋点（sendBeacon / fetch）——
-const TRACK_TYPES = new Set(['pageview', 'tool_click', 'cta_click', 'diagnosis_start', 'diagnosis_step', 'read_complete']);
+const TRACK_TYPES = new Set(['pageview', 'tool_click', 'cta_click', 'read_complete', 'product_interest']);
 router.post('/track', (req, res) => {
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
