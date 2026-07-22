@@ -1,0 +1,48 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <% const EN = (typeof locale !== 'undefined' && locale === 'en'); %>
+  <section class="page-hero">
+    <span class="kicker"><%- ct('ui.area_riservata') %></span>
+    <h1><%= EN ? 'Welcome back, ' : 'Bentornato, ' %><%= user.name %></h1>
+    <p class="lede"><%= EN
+      ? 'Your reserved area. Installer features (price lists, orders, training) are being rolled out — you will be notified at activation.'
+      : 'La tua area riservata. Le funzioni per installatori (listino, ordini, formazione) sono in attivazione — riceverai una notifica appena disponibili.' %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="svc-grid">
+      <div class="svc-card" style="opacity:.65">
+        <span class="card-kicker"><%= EN ? 'Coming soon' : 'In arrivo' %></span>
+        <h4><%= EN ? 'Price list & orders' : 'Listino e ordini' %></h4>
+        <p><%= EN ? 'Reserved price list, stock availability and order tracking.' : 'Listino riservato, disponibilità magazzino e stato ordini.' %></p>
+      </div>
+      <a class="svc-card" href="<%= link('/documentazione') %>">
+        <span class="card-kicker"><%= EN ? 'Available' : 'Disponibile' %></span>
+        <h4><%= EN ? 'Technical documentation' : 'Documentazione tecnica' %></h4>
+        <p><%= EN ? 'Datasheets, manuals and certificates — always updated.' : 'Schede tecniche, manuali e certificazioni sempre aggiornati.' %></p>
+      </a>
+      <a class="svc-card" href="<%= link('/strumenti') %>">
+        <span class="card-kicker"><%= EN ? 'Available' : 'Disponibile' %></span>
+        <h4><%= EN ? 'HVAC tools' : 'Strumenti HVAC' %></h4>
+        <p><%= EN ? 'Calculation tools for daily work.' : 'Strumenti di calcolo per il lavoro quotidiano.' %></p>
+      </a>
+    </div>
+
+    <div class="card" style="margin-top:28px;padding:24px">
+      <span class="card-kicker"><%= EN ? 'Your account' : 'Il tuo account' %></span>
+      <p style="margin:10px 0 0;font-size:14px">
+        <%= user.email %> · <%= EN ? 'role' : 'ruolo' %>: <b><%= user.role === 'admin' ? 'Admin' : (user.role === 'installer' ? (EN ? 'Installer' : 'Installatore') : (EN ? 'Customer' : 'Privato')) %></b>
+      </p>
+      <% if (user.role === 'consumer') { %>
+      <p style="margin:8px 0 0;font-size:13px;color:var(--color-neutral-600)"><%= EN
+        ? 'Are you an installer? Write to us from your company email to upgrade your account.'
+        : 'Sei un installatore? Scrivici dalla tua email aziendale per aggiornare l’account.' %></p>
+      <% } %>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

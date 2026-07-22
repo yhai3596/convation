@@ -153,6 +153,11 @@ addColumn('courses', "cover_url TEXT NOT NULL DEFAULT ''");
 addColumn('courses', 'archived INTEGER NOT NULL DEFAULT 0');
 addColumn('tools', 'archived INTEGER NOT NULL DEFAULT 0');
 addColumn('cases', 'archived INTEGER NOT NULL DEFAULT 0');
+// Convation 用户角色：role ∈ admin | installer | consumer（register 默认 consumer）；
+// status/company/piva 为安装工资质审核预留列（审核流暂缓，DESIGN.md §12）。
+addColumn('users', "status TEXT NOT NULL DEFAULT 'active'");         // active | pending（预留）
+addColumn('users', "company TEXT NOT NULL DEFAULT ''");              // 安装工公司名（预留）
+addColumn('users', "piva TEXT NOT NULL DEFAULT ''");                 // P.IVA 税号（预留）
 // 存量评论：已有回复的顶层评论视为已处理，避免 Worker 重复回帖
 db.exec(`UPDATE comments SET agent_status='replied'
   WHERE parent_id IS NULL AND agent_status IS NULL

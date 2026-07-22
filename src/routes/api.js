@@ -41,11 +41,11 @@ router.post('/auth/register', rateLimit('reg', 10, 600e3), (req, res) => {
   if (db.prepare('SELECT id FROM users WHERE email=?').get(em)) return res.status(409).json({ error: '该邮箱已注册，请直接登录' });
 
   const source = analytics.firstTouchSource(String(sid));
-  const r = db.prepare("INSERT INTO users(email,name,password_hash,role,source) VALUES (?,?,?,'member',?)")
+  const r = db.prepare("INSERT INTO users(email,name,password_hash,role,source) VALUES (?,?,?,'consumer',?)")
     .run(em, n, bcrypt.hashSync(String(password), 10), source);
-  req.session.user = { id: r.lastInsertRowid, name: n, email: em, role: 'member' };
+  req.session.user = { id: r.lastInsertRowid, name: n, email: em, role: 'consumer' };
   analytics.record({ sid, userId: r.lastInsertRowid, type: 'register', path: '/login' });
-  res.json({ ok: true, user: { name: n, role: 'member' } });
+  res.json({ ok: true, user: { name: n, role: 'consumer' } });
 });
 
 router.post('/auth/login', rateLimit('login', 15, 600e3), (req, res) => {

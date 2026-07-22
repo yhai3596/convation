@@ -83,6 +83,16 @@ function makeRouter(locale) {
     res.render('login', { title: `Area Riservata · ${SITE}`, active: '', next: req.query.next || res.locals.urlprefix + '/' });
   });
 
+  // Area Riservata：登录门槛 + 角色占位页（安装工功能后续阶段填充）
+  const raPath = locale === 'en' ? '/reserved-area' : '/area-riservata';
+  r.get(raPath, (req, res) => {
+    if (!res.locals.user) return res.redirect(`${res.locals.urlprefix}/login?next=${raPath}`);
+    res.render('area-riservata', {
+      title: `${locale === 'en' ? 'Reserved Area' : 'Area Riservata'} · ${SITE}`,
+      active: '',
+    });
+  });
+
   return r;
 }
 
