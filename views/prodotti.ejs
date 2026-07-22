@@ -28,7 +28,7 @@
 
   <section class="band-dark" style="border-radius:var(--radius-lg);padding:32px;margin-bottom:64px">
     <p style="margin:0;font-size:15px;max-width:70ch"><%- ct('prodotti.note') %></p>
-    <a class="btn btn-primary" href="/login" style="text-decoration:none;margin-top:18px"><%- ct('ui.area_riservata') %> →</a>
+    <a class="btn btn-primary" href="<%= link('/login') %>" style="text-decoration:none;margin-top:18px"><%- ct('ui.area_riservata') %> →</a>
   </section>
 
   <%- include('partials/footer') %>

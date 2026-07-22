@@ -10,13 +10,13 @@
       <p style="font-size:17px;max-width:58ch;margin:26px 0 0;color:color-mix(in srgb, var(--color-text) 85%, transparent)"><%- ct('home.hero_body') %></p>
 
       <div class="track-grid">
-        <a class="track-card" href="/consulenza" data-track="cta_click" data-track-meta="track_privato">
+        <a class="track-card" href="<%= link('/consulenza') %>" data-track="cta_click" data-track-meta="track_privato">
           <span class="tc-kicker"><%- ct('home.track_p_kicker') %></span>
           <h3><%- ct('home.track_p_title') %></h3>
           <p><%- ct('home.track_p_body') %></p>
           <span class="tc-go"><%- ct('ui.read_more') %></span>
         </a>
-        <a class="track-card" href="/login" data-track="cta_click" data-track-meta="track_installatore">
+        <a class="track-card" href="<%= link('/login') %>" data-track="cta_click" data-track-meta="track_installatore">
           <span class="tc-kicker"><%- ct('home.track_i_kicker') %></span>
           <h3><%- ct('home.track_i_title') %></h3>
           <p><%- ct('home.track_i_body') %></p>
@@ -35,12 +35,12 @@
   <section style="padding:64px 0">
     <span class="kicker"><%- ct('home.cats_kicker') %></span>
     <div class="cat-grid">
-      <a class="cat-card" href="/prodotti#pompe-di-calore" style="--cat-color:var(--color-accent-2-500);--cat-bg:var(--color-accent-2-100);--cat-deep:var(--color-accent-2-800)" data-track="cta_click" data-track-meta="cat_hp">
+      <a class="cat-card" href="<%= link('/prodotti') %>#pompe-di-calore" style="--cat-color:var(--color-accent-2-500);--cat-bg:var(--color-accent-2-100);--cat-deep:var(--color-accent-2-800)" data-track="cta_click" data-track-meta="cat_hp">
         <span class="cc-tag"><%- ct('home.cat_hp_tag') %></span>
         <h3><%- ct('home.cat_hp_title') %></h3>
         <p><%- ct('home.cat_hp_body') %></p>
       </a>
-      <a class="cat-card" href="/prodotti#climatizzatori" style="--cat-color:var(--color-cool-500);--cat-bg:var(--color-cool-100);--cat-deep:var(--color-cool-800)" data-track="cta_click" data-track-meta="cat_ac">
+      <a class="cat-card" href="<%= link('/prodotti') %>#climatizzatori" style="--cat-color:var(--color-cool-500);--cat-bg:var(--color-cool-100);--cat-deep:var(--color-cool-800)" data-track="cta_click" data-track-meta="cat_ac">
         <span class="cc-tag"><%- ct('home.cat_ac_tag') %></span>
         <h3><%- ct('home.cat_ac_title') %></h3>
         <p><%- ct('home.cat_ac_body') %></p>
@@ -51,17 +51,17 @@
   <section style="padding:24px 0 64px">
     <span class="kicker"><%- ct('home.svc_kicker') %></span>
     <div class="svc-grid">
-      <a class="svc-card" href="/documentazione">
+      <a class="svc-card" href="<%= link('/documentazione') %>">
         <span class="card-kicker">01</span>
         <h4><%- ct('home.svc1_title') %></h4>
         <p><%- ct('home.svc1_body') %></p>
       </a>
-      <a class="svc-card" href="/login">
+      <a class="svc-card" href="<%= link('/login') %>">
         <span class="card-kicker">02</span>
         <h4><%- ct('home.svc2_title') %></h4>
         <p><%- ct('home.svc2_body') %></p>
       </a>
-      <a class="svc-card" href="/strumenti">
+      <a class="svc-card" href="<%= link('/strumenti') %>">
         <span class="card-kicker">03</span>
         <h4><%- ct('home.svc3_title') %></h4>
         <p><%- ct('home.svc3_body') %></p>
@@ -76,7 +76,7 @@
     <span class="kicker"><%- ct('home.detr_kicker') %></span>
     <h2 style="font-size:clamp(26px,3vw,36px);max-width:22ch;margin:0"><%- ct('home.detr_title') %></h2>
     <p style="max-width:60ch;margin:18px 0 0;color:#B9C7D6"><%- ct('home.detr_body') %></p>
-    <a class="btn btn-primary" href="/detrazioni" style="text-decoration:none;margin-top:24px"><%- ct('ui.read_more') %></a>
+    <a class="btn btn-primary" href="<%= link('/detrazioni') %>" style="text-decoration:none;margin-top:24px"><%- ct('ui.read_more') %></a>
   </div>
 </section>
 
@@ -85,8 +85,8 @@
     <h2 style="font-size:clamp(26px,3vw,34px);margin:0 auto;max-width:24ch"><%- ct('home.cta_title') %></h2>
     <p style="max-width:56ch;margin:18px auto 0;color:var(--color-neutral-700)"><%- ct('home.cta_body') %></p>
     <div style="display:flex;gap:14px;justify-content:center;margin-top:28px;flex-wrap:wrap">
-      <a class="btn btn-primary" href="/consulenza" style="text-decoration:none" data-track="cta_click" data-track-meta="home_cta">Richiedi preventivo gratuito</a>
-      <a class="btn btn-secondary" href="/contatti" style="text-decoration:none"><%- ct('contatti.hero_title') %></a>
+      <a class="btn btn-primary" href="<%= link('/consulenza') %>" style="text-decoration:none" data-track="cta_click" data-track-meta="home_cta">Richiedi preventivo gratuito</a>
+      <a class="btn btn-secondary" href="<%= link('/contatti') %>" style="text-decoration:none"><%- ct('contatti.hero_title') %></a>
     </div>
   </section>
 

@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="<%= typeof locale !== 'undefined' ? locale : 'it' %>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><%= title %></title>
-<meta name="description" content="Convation — vendita, installazione e assistenza di pompe di calore e climatizzatori in Italia. Partner affidabile per installatori e privati.">
+<meta name="description" content="<%= (typeof locale !== 'undefined' && locale === 'en') ? 'Convation — sale, installation and service of heat pumps and air conditioners in Italy. A reliable partner for installers and homeowners.' : 'Convation — vendita, installazione e assistenza di pompe di calore e climatizzatori in Italia. Partner affidabile per installatori e privati.' %>">
+<% if (typeof hrefIt !== 'undefined') { %>
+<link rel="alternate" hreflang="it" href="<%= hrefIt %>">
+<link rel="alternate" hreflang="en" href="<%= hrefEn %>">
+<link rel="alternate" hreflang="x-default" href="<%= hrefIt %>">
+<% } %>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230F4C8C'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-weight='bold' font-size='19' text-anchor='middle' fill='%23ffffff'%3EC%3C/text%3E%3Ccircle cx='24' cy='9' r='3' fill='%23E06B3A'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/vendor/archivo/500.css">
 <link rel="stylesheet" href="/vendor/archivo/600.css">

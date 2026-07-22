@@ -1,0 +1,28 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Privacy</span>
+    <h1><%= (typeof locale !== 'undefined' && locale === 'en') ? 'Privacy & cookie policy' : 'Privacy e cookie policy' %></h1>
+  </section>
+
+  <section style="padding:0 0 70px;max-width:820px;font-size:15px;line-height:1.75;color:var(--color-neutral-700)">
+    <% if (typeof locale !== 'undefined' && locale === 'en') { %>
+    <p><strong>Data controller.</strong> Convation S.r.l., <%- ct('site.address') %> — <%- ct('site.email_info') %>.</p>
+    <p><strong>Data we collect.</strong> Contact details you send us (name, email, message), account data for the Reserved Area, anonymous usage statistics (self-hosted, no third-party trackers).</p>
+    <p><strong>Purpose & legal basis.</strong> Replying to enquiries and providing reserved services (contractual necessity); aggregate usage statistics (legitimate interest).</p>
+    <p><strong>Cookies.</strong> Only technical cookies (session, preferences). No profiling or advertising cookies. You can block cookies in your browser; the site remains usable.</p>
+    <p><strong>Retention & rights.</strong> Messages are kept as long as needed to handle your request. You may request access, rectification or deletion of your data at any time by writing to <%- ct('site.email_info') %> (GDPR, Reg. EU 2016/679).</p>
+    <% } else { %>
+    <p><strong>Titolare del trattamento.</strong> Convation S.r.l., <%- ct('site.address') %> — <%- ct('site.email_info') %>.</p>
+    <p><strong>Dati raccolti.</strong> Dati di contatto inviati volontariamente (nome, email, messaggio), dati account per l’Area Riservata, statistiche d’uso anonime (auto-ospitate, nessun tracker di terze parti).</p>
+    <p><strong>Finalità e base giuridica.</strong> Rispondere alle richieste ed erogare i servizi riservati (necessità contrattuale); statistiche aggregate d’uso (legittimo interesse).</p>
+    <p><strong>Cookie.</strong> Solo cookie tecnici (sessione, preferenze). Nessun cookie di profilazione o pubblicitario. Puoi bloccare i cookie dal browser; il sito resta utilizzabile.</p>
+    <p><strong>Conservazione e diritti.</strong> I messaggi sono conservati per il tempo necessario a gestire la richiesta. Puoi chiedere accesso, rettifica o cancellazione dei tuoi dati in qualsiasi momento scrivendo a <%- ct('site.email_info') %> (GDPR, Reg. UE 2016/679).</p>
+    <% } %>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

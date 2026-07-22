@@ -1,19 +1,39 @@
+<%
+const FL = (typeof locale !== 'undefined' && locale === 'en') ? 'en' : 'it';
+const FP = FL === 'en' ? '/en' : '';
+const F = {
+  it: {
+    tagline: 'Vendita, installazione e assistenza di pompe di calore e climatizzatori in tutta Italia.',
+    c1: 'Prodotti', c2: 'Supporto', c3: 'Contatti',
+    l1: ['Pompe di calore','/prodotti'], l2: ['Climatizzatori','/prodotti'], l3: ['Strumenti HVAC','/strumenti'],
+    s1: ['Documentazione','/documentazione'], s2: ['Detrazioni','/detrazioni'], s3: ['Assistenza','/assistenza'], s4: ['Area Riservata','/login'],
+    contact: ['Contatti','/contatti'], privacy: ['Privacy','/privacy'],
+  },
+  en: {
+    tagline: 'Sale, installation and service of heat pumps and air conditioners across Italy.',
+    c1: 'Products', c2: 'Support', c3: 'Contact',
+    l1: ['Heat pumps','/en/products'], l2: ['Air conditioners','/en/products'], l3: ['HVAC tools','/en/hvac-tools'],
+    s1: ['Documentation','/en/technical-docs'], s2: ['Incentives','/en/incentives'], s3: ['Support','/en/support'], s4: ['Reserved Area','/en/login'],
+    contact: ['Contact','/en/contact'], privacy: ['Privacy','/privacy'],
+  },
+}[FL];
+%>
 <footer class="site-footer" style="display:block">
   <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:36px;padding-bottom:36px" class="footer-cols">
     <div>
       <img src="/assets/logo.jpg" alt="Convation" style="height:30px;width:auto;margin-bottom:14px">
-      <p style="margin:0;font-size:13px;line-height:22px">Vendita, installazione e assistenza di pompe di calore e climatizzatori in tutta Italia.</p>
+      <p style="margin:0;font-size:13px;line-height:22px"><%= F.tagline %></p>
     </div>
     <div>
-      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Prodotti</p>
-      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="/prodotti" style="color:inherit">Pompe di calore</a><a href="/prodotti" style="color:inherit">Climatizzatori</a><a href="/strumenti" style="color:inherit">Strumenti HVAC</a></p>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px"><%= F.c1 %></p>
+      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="<%= F.l1[1] %>" style="color:inherit"><%= F.l1[0] %></a><a href="<%= F.l2[1] %>" style="color:inherit"><%= F.l2[0] %></a><a href="<%= F.l3[1] %>" style="color:inherit"><%= F.l3[0] %></a></p>
     </div>
     <div>
-      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Supporto</p>
-      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="/documentazione" style="color:inherit">Documentazione</a><a href="/detrazioni" style="color:inherit">Detrazioni</a><a href="/assistenza" style="color:inherit">Assistenza</a><a href="/login" style="color:inherit">Area Riservata</a></p>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px"><%= F.c2 %></p>
+      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="<%= F.s1[1] %>" style="color:inherit"><%= F.s1[0] %></a><a href="<%= F.s2[1] %>" style="color:inherit"><%= F.s2[0] %></a><a href="<%= F.s3[1] %>" style="color:inherit"><%= F.s3[0] %></a><a href="<%= F.s4[1] %>" style="color:inherit"><%= F.s4[0] %></a></p>
     </div>
     <div>
-      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Contatti</p>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px"><%= F.c3 %></p>
       <p style="margin:0;display:flex;flex-direction:column;gap:7px">
         <span><%- ct('site.address') %></span>
         <a href="tel:<%- ct('site.phone').replace(/\s/g,'') %>" style="color:inherit"><%- ct('site.phone') %></a>
@@ -24,7 +44,7 @@
   </div>
   <div style="border-top:1px solid var(--color-divider);padding-top:18px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--color-neutral-500)">
     <span><%- ct('site.piva') %></span>
-    <span style="display:flex;gap:18px"><a href="/contatti" style="color:inherit">Contatti</a><a href="/privacy" style="color:inherit">Privacy</a><a href="/admin" style="color:inherit">Admin</a></span>
+    <span style="display:flex;gap:18px"><a href="<%= F.contact[1] %>" style="color:inherit"><%= F.contact[0] %></a><a href="<%= F.privacy[1] %>" style="color:inherit"><%= F.privacy[0] %></a><a href="/admin" style="color:inherit">Admin</a></span>
   </div>
 </footer>
 <style>

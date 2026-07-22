@@ -1,28 +1,43 @@
+<%
+const L = (typeof locale !== 'undefined' && locale === 'en') ? 'en' : 'it';
+const PRE = L === 'en' ? '/en' : '';
+const NAV = {
+  it: [['Prodotti','/prodotti','prodotti'],['Documentazione','/documentazione','documentazione'],['Strumenti','/strumenti','strumenti'],['Referenze','/referenze','referenze'],['Assistenza','/assistenza','assistenza'],['Chi siamo','/chi-siamo','chi-siamo']],
+  en: [['Products','/en/products','prodotti'],['Docs','/en/technical-docs','documentazione'],['Tools','/en/hvac-tools','strumenti'],['References','/en/references','referenze'],['Support','/en/support','assistenza'],['About','/en/about-us','chi-siamo']],
+};
+const TB = {
+  it: { detra: 'Detrazioni e incentivi', quote: 'Richiedi preventivo', hi: 'Ciao', out: 'Esci' },
+  en: { detra: 'Incentives', quote: 'Request a quote', hi: 'Hi', out: 'Sign out' },
+}[L];
+%>
 <div class="topbar">
   <div class="topbar-inner">
     <div class="tb-group">
       <span>☎ <%- ct('site.phone') %></span>
       <a href="mailto:<%- ct('site.email_info') %>"><%- ct('site.email_info') %></a>
-      <a href="/detrazioni">Detrazioni e incentivi</a>
+      <a href="<%= PRE %>/detrazioni"><%= TB.detra %></a>
     </div>
     <div class="tb-group">
-      <a href="/login"><%- ct('ui.area_riservata') %> →</a>
+      <% if (typeof pathIt !== 'undefined') { %>
+      <a href="<%= pathIt %>"<%- L === 'it' ? ' style="font-weight:700;text-decoration:underline"' : '' %>>IT</a>
+      <a href="<%= '/en' + (pathEn === '/' ? '' : pathEn) %>"<%- L === 'en' ? ' style="font-weight:700;text-decoration:underline"' : '' %>>EN</a>
+      <% } %>
+      <a href="<%= PRE %>/login"><%- ct('ui.area_riservata') %> →</a>
     </div>
   </div>
 </div>
 <nav class="nav site-nav">
-  <a href="/" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
+  <a href="<%= PRE || '/' %>" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
     <img src="/assets/logo.jpg" alt="Convation" style="height:34px;width:auto;display:block">
   </a>
-  <% const navItems = [['Prodotti','/prodotti','prodotti'],['Documentazione','/documentazione','documentazione'],['Strumenti','/strumenti','strumenti'],['Referenze','/referenze','referenze'],['Assistenza','/assistenza','assistenza'],['Chi siamo','/chi-siamo','chi-siamo']]; %>
-  <% for (const [label, href, key] of navItems) { %>
+  <% for (const [label, href, key] of NAV[L]) { %>
   <a href="<%= href %>"<%- active === key ? ' aria-current="page"' : '' %>><%= label %></a>
   <% } %>
   <% if (user) { %>
-  <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap">Ciao, <%= user.name %></span>
+  <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap"><%= TB.hi %>, <%= user.name %></span>
   <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">Admin</a><% } %>
-  <a href="#" id="nav-logout" style="font-size:13px">Esci</a>
+  <a href="#" id="nav-logout" style="font-size:13px"><%= TB.out %></a>
   <% } else { %>
-  <a class="btn btn-primary" href="/consulenza" style="text-decoration:none">Richiedi preventivo</a>
+  <a class="btn btn-primary" href="<%= PRE %>/consulenza" style="text-decoration:none"><%= TB.quote %></a>
   <% } %>
 </nav>
