@@ -12,7 +12,6 @@ const mailer = require('../mailer');
 const llm = require('../llm');
 const config = require('../config');
 const content = require('../content');
-const report = require('../report');
 const worker = require('../worker');
 
 const router = express.Router();
@@ -36,26 +35,26 @@ router.get('/admin', requireAdmin, (req, res) => {
   const dash = analytics.dashboard(days);
 
   const posts = db.prepare('SELECT * FROM posts ORDER BY COALESCE(published_at, updated_at) DESC').all();
-  const courses = db.prepare('SELECT * FROM courses ORDER BY no').all();
+  const products = db.prepare('SELECT * FROM products ORDER BY category, no').all();
+  const documents = db.prepare('SELECT * FROM documents ORDER BY doctype, no').all();
   const tools = db.prepare('SELECT * FROM tools ORDER BY no').all();
   const cases = db.prepare('SELECT * FROM cases ORDER BY sort').all();
   const users = analytics.usersList();
-  const submissions = db.prepare('SELECT * FROM diagnosis_submissions ORDER BY created_at DESC LIMIT 20').all();
   const counts = {
     subscribers: db.prepare('SELECT COUNT(*) c FROM subscribers').get().c,
     messages: db.prepare('SELECT COUNT(*) c FROM messages').get().c,
-    submissions: db.prepare('SELECT COUNT(*) c FROM diagnosis_submissions').get().c,
+    draftsPending: db.prepare("SELECT COUNT(*) c FROM ai_drafts WHERE status='pending'").get().c,
   };
   const messages = db.prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT 10').all();
 
   const llmCfg = config.llmConfig();
   res.render('admin', {
-    title: '管理后台 · Alan',
+    title: '管理后台 · Convation',
     active: '',
     range, dash,
     pvPoints: analytics.trendPoints(dash.trend, 'pv'),
     uvPoints: analytics.trendPoints(dash.trend, 'uv'),
-    posts, courses, tools, cases, users, submissions, messages, counts,
+    posts, products, documents, tools, cases, users, messages, counts,
     agentStatus: agent.agentStatus(),
     mailerEnabled: mailer.enabled(),
     llmEnabled: llm.enabled(),
@@ -64,13 +63,13 @@ router.get('/admin', requireAdmin, (req, res) => {
     activity: config.recentActivity(30),
     tokens: db.prepare('SELECT id,name,revoked,last_used_at,created_at FROM api_tokens ORDER BY id DESC').all(),
     drafts: posts.filter(p => p.status === 'draft'),
+    aiDrafts: db.prepare("SELECT * FROM ai_drafts WHERE status='pending' ORDER BY created_at DESC LIMIT 20").all(),
     llmCfgView: { base: llmCfg.base, model: llmCfg.model, keyMasked: config.maskKey(llmCfg.key), configured: !!llmCfg.key },
     llmProviders: config.llmProvidersView(),
     workerLastTick: getSetting('worker_last_tick', null),
-    // 页面内容 / 诊断知识库
-    contentList: content.listForAdmin(),
-    kb: report.getKB(),
-    kbOverridden: !!getSetting('diagnosis_kb'),
+    // 页面内容（双语：默认意语，可在页面内容页签切换）
+    contentList: content.listForAdmin('it'),
+    contentListEn: content.listForAdmin('en'),
   });
 });
 
@@ -91,25 +90,26 @@ router.get('/admin/preview/post/:id', requireAdmin, (req, res) => {
 
 // ============================================================ 内容 CRUD
 router.post('/admin/api/post', requireAdminApi, (req, res) => {
-  const { id, title = '', category = '行业观察', excerpt = '', content_md = '', read_minutes = 5, status = 'draft' } = req.body || {};
+  const { id, title = '', category = 'Incentivi', excerpt = '', content_md = '', read_minutes = 5, status = 'draft', locale = 'it' } = req.body || {};
   const t = String(title).trim();
   if (!t) return res.status(400).json({ error: '请填写标题' });
   const st = ['published', 'draft', 'archived'].includes(status) ? status : 'draft';
+  const loc = locale === 'en' ? 'en' : 'it';
   const rm = Math.max(1, Math.min(120, Number(read_minutes) || 5));
 
   if (id) {
     const old = db.prepare('SELECT * FROM posts WHERE id=?').get(Number(id));
     if (!old) return res.status(404).json({ error: '文章不存在' });
     const publishedAt = old.published_at || (st === 'published' ? db.prepare("SELECT date('now','+8 hours') d").get().d : null);
-    db.prepare(`UPDATE posts SET title=?, category=?, excerpt=?, content_md=?, read_minutes=?, status=?, published_at=?, updated_at=datetime('now') WHERE id=?`)
-      .run(t, String(category).trim() || '行业观察', String(excerpt).trim(), String(content_md), rm, st, publishedAt, old.id);
+    db.prepare(`UPDATE posts SET title=?, category=?, excerpt=?, content_md=?, read_minutes=?, status=?, published_at=?, locale=?, updated_at=datetime('now') WHERE id=?`)
+      .run(t, String(category).trim() || 'Incentivi', String(excerpt).trim(), String(content_md), rm, st, publishedAt, loc, old.id);
     return res.json({ ok: true, id: old.id });
   }
   const slug = `post-${Date.now().toString(36)}`;
   const publishedAt = st === 'published' ? db.prepare("SELECT date('now','+8 hours') d").get().d : null;
-  const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by)
-    VALUES (?,?,?,?,?,?,?,?,'admin')`)
-    .run(slug, t, String(category).trim() || '行业观察', String(excerpt).trim(), String(content_md), rm, st, publishedAt);
+  const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,published_at,created_by,locale)
+    VALUES (?,?,?,?,?,?,?,?,'admin',?)`)
+    .run(slug, t, String(category).trim() || 'Incentivi', String(excerpt).trim(), String(content_md), rm, st, publishedAt, loc);
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
@@ -123,25 +123,28 @@ router.post('/admin/api/post-publish', requireAdminApi, (req, res) => {
   res.json({ ok: true });
 });
 
-// AI 生成文章草稿（需 LLM 配置）
+// AI 生成文章草稿（需 LLM 配置；产出进草稿态，人工审核发布）
 router.post('/admin/api/post-generate', requireAdminApi, async (req, res) => {
   if (!llm.enabled()) return res.status(400).json({ error: '尚未配置 LLM——请先在「Agent 自动化」页填写 API Key 并测试连接' });
-  const { topic = '', outline = '', style = '行业观察，克制专业', length = '800' } = req.body || {};
+  const { topic = '', outline = '', style = '专业、清晰、面向意大利读者', length = '800', locale = 'it' } = req.body || {};
   const tp = String(topic).trim();
   if (!tp) return res.status(400).json({ error: '请填写选题' });
+  const loc = locale === 'en' ? 'en' : 'it';
+  const langName = loc === 'en' ? 'English' : 'italiano';
   try {
     const text = await llm.chat([
-      { role: 'system', content: `你是 Alan（暖通行业 AI 专家，20 多年制造业经验）的写作助理「小龙虾」。${agent.SITE_KNOWLEDGE}\n为 Alan 的博客撰写文章草稿。要求：中文、面向制造业/暖通从业者、观点务实不夸大、可用二级标题分段（Markdown ## ）。只输出 JSON：{"title":"标题","category":"行业观察|工具方法|专利|课程笔记 之一","excerpt":"60-90字摘要","content_md":"Markdown 正文","read_minutes":整数}` },
-      { role: 'user', content: `选题：${tp}\n要点/大纲：${String(outline).trim() || '（自拟）'}\n风格：${String(style).trim()}\n目标篇幅：约 ${Number(length) || 800} 字` },
+      { role: 'system', content: `Sei l'assistente editoriale di Convation (vendita, installazione e assistenza HVAC in Italia). Scrivi bozze di articoli per il blog aziendale in ${langName}: tono professionale e concreto, niente esagerazioni di marketing, titoli di sezione con ## (Markdown). Categorie consentite: Incentivi | Guide | Normativa (inglese: Incentives | Guides | Regulation). Rispondi SOLO in JSON: {"title":"...","category":"...","excerpt":"60-90 parole","content_md":"...","read_minutes":intero}` },
+      { role: 'user', content: `Argomento: ${tp}\nPunti/outline: ${String(outline).trim() || '(libero)'}\nStile: ${String(style).trim()}\nLunghezza target: circa ${Number(length) || 800} parole` },
     ], { maxTokens: 3000, timeoutMs: 60000, json: true });
     const j = llm.parseJson(text);
     if (!j.title || !j.content_md) throw new Error('生成结果缺少标题或正文');
     const slug = `post-${Date.now().toString(36)}`;
     const rm = Math.max(1, Math.min(60, Number(j.read_minutes) || Math.round(String(j.content_md).length / 400) || 5));
-    const cat = ['行业观察', '工具方法', '专利', '课程笔记'].includes(j.category) ? j.category : '行业观察';
-    const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,created_by)
-      VALUES (?,?,?,?,?,?,'draft','ai')`)
-      .run(slug, String(j.title).slice(0, 120), cat, String(j.excerpt || '').slice(0, 300), String(j.content_md), rm);
+    const cats = loc === 'en' ? ['Incentives', 'Guides', 'Regulation'] : ['Incentivi', 'Guide', 'Normativa'];
+    const cat = cats.includes(j.category) ? j.category : cats[1];
+    const r = db.prepare(`INSERT INTO posts(slug,title,category,excerpt,content_md,read_minutes,status,created_by,locale)
+      VALUES (?,?,?,?,?,?,'draft','ai',?)`)
+      .run(slug, String(j.title).slice(0, 120), cat, String(j.excerpt || '').slice(0, 300), String(j.content_md), rm, loc);
     config.logActivity('system:ai', 'post_create', `post#${r.lastInsertRowid}`, `AI 草稿：${String(j.title).slice(0, 50)}`, true);
     res.json({ ok: true, id: r.lastInsertRowid, title: j.title, status: 'draft' });
   } catch (e) {
@@ -150,26 +153,52 @@ router.post('/admin/api/post-generate', requireAdminApi, async (req, res) => {
   }
 });
 
-router.post('/admin/api/course', requireAdminApi, (req, res) => {
-  const { id, title = '', description = '', lectures, price_yuan, status = 'live', tag = '', kicker = '', cover_url = '' } = req.body || {};
-  const t = String(title).trim();
-  if (!t) return res.status(400).json({ error: '请填写课程名称' });
-  const st = ['live', 'coming'].includes(status) ? status : 'live';
-  const lec = lectures ? Math.max(1, Number(lectures)) : null;
-  const price = price_yuan !== '' && price_yuan != null ? Math.round(Number(price_yuan) * 100) : null;
-  const kick = String(kicker).trim() || (st === 'live' ? `已上线${lec ? ` · ${lec} 讲` : ''}` : '筹备中');
-  const cover = /^\/uploads\/[\w\-./]+$/.test(String(cover_url)) ? String(cover_url) : '';
+// 产品 CRUD（双语字段 + 品类 + 参数 JSON）
+router.post('/admin/api/product', requireAdminApi, (req, res) => {
+  const { id, slug = '', category = 'heatpump', name_it = '', name_en = '', desc_it = '', desc_en = '', specs_json = '{}', efficiency = '' } = req.body || {};
+  const t = String(name_it).trim();
+  if (!t) return res.status(400).json({ error: '请填写产品名称（意语）' });
+  const cat = ['heatpump', 'ac'].includes(category) ? category : 'heatpump';
+  let specs = '{}';
+  try { specs = JSON.stringify(JSON.parse(String(specs_json || '{}'))); } catch (_) { return res.status(400).json({ error: '参数 JSON 格式不正确' }); }
+  const eff = String(efficiency).trim().slice(0, 8);
 
   if (id) {
-    const old = db.prepare('SELECT id FROM courses WHERE id=?').get(Number(id));
-    if (!old) return res.status(404).json({ error: '课程不存在' });
-    db.prepare(`UPDATE courses SET title=?, description=?, lectures=?, price_cents=?, status=?, tag=?, kicker=?, cover_url=?, updated_at=datetime('now') WHERE id=?`)
-      .run(t, String(description).trim(), lec, price, st, String(tag).trim(), kick, cover, old.id);
+    const old = db.prepare('SELECT id FROM products WHERE id=?').get(Number(id));
+    if (!old) return res.status(404).json({ error: '产品不存在' });
+    db.prepare(`UPDATE products SET category=?, name_it=?, name_en=?, desc_it=?, desc_en=?, specs_json=?, efficiency=?, updated_at=datetime('now') WHERE id=?`)
+      .run(cat, t, String(name_en).trim(), String(desc_it).trim(), String(desc_en).trim(), specs, eff, old.id);
     return res.json({ ok: true, id: old.id });
   }
-  const no = (db.prepare('SELECT MAX(no) m FROM courses').get().m || 0) + 1;
-  const r = db.prepare('INSERT INTO courses(no,title,description,lectures,price_cents,status,tag,kicker,cover_url) VALUES (?,?,?,?,?,?,?,?,?)')
-    .run(no, t, String(description).trim(), lec, price, st, String(tag).trim(), kick, cover);
+  const s = String(slug).trim() || `cv-${Date.now().toString(36)}`;
+  if (db.prepare('SELECT id FROM products WHERE slug=?').get(s)) return res.status(409).json({ error: `slug「${s}」已存在` });
+  const no = (db.prepare('SELECT MAX(no) m FROM products').get().m || 0) + 1;
+  const r = db.prepare('INSERT INTO products(no,slug,category,name_it,name_en,desc_it,desc_en,specs_json,efficiency) VALUES (?,?,?,?,?,?,?,?,?)')
+    .run(no, s, cat, t, String(name_en).trim(), String(desc_it).trim(), String(desc_en).trim(), specs, eff);
+  res.json({ ok: true, id: r.lastInsertRowid });
+});
+
+// 技术文档 CRUD（PDF 元数据；文件经 /admin/api/upload 或后续 PDF 上传）
+router.post('/admin/api/document', requireAdminApi, (req, res) => {
+  const { id, title_it = '', title_en = '', product_id, doctype = 'scheda', file = '', lang = 'it', version = '', size = '' } = req.body || {};
+  const t = String(title_it).trim();
+  if (!t) return res.status(400).json({ error: '请填写文档标题（意语）' });
+  const dt = ['scheda', 'manuale', 'cert', 'dichiarazione'].includes(doctype) ? doctype : 'scheda';
+  const pid = product_id ? Number(product_id) : null;
+  if (pid && !db.prepare('SELECT id FROM products WHERE id=?').get(pid)) return res.status(400).json({ error: '关联产品不存在' });
+  const f = String(file).trim();
+  if (f && !/^\/(uploads|assets)\/[\w\-./]+$/.test(f) && !/^https?:\/\//.test(f)) return res.status(400).json({ error: '文件路径需为站内 /uploads 或 http(s) 链接' });
+
+  if (id) {
+    const old = db.prepare('SELECT id FROM documents WHERE id=?').get(Number(id));
+    if (!old) return res.status(404).json({ error: '文档不存在' });
+    db.prepare('UPDATE documents SET title_it=?, title_en=?, product_id=?, doctype=?, file=?, lang=?, version=?, size=? WHERE id=?')
+      .run(t, String(title_en).trim(), pid, dt, f, String(lang).trim().slice(0, 5), String(version).trim().slice(0, 12), String(size).trim().slice(0, 12), old.id);
+    return res.json({ ok: true, id: old.id });
+  }
+  const no = (db.prepare('SELECT MAX(no) m FROM documents').get().m || 0) + 1;
+  const r = db.prepare('INSERT INTO documents(title_it,title_en,product_id,doctype,file,lang,version,size,no) VALUES (?,?,?,?,?,?,?,?,?)')
+    .run(t, String(title_en).trim(), pid, dt, f, String(lang).trim().slice(0, 5), String(version).trim().slice(0, 12), String(size).trim().slice(0, 12), no);
   res.json({ ok: true, id: r.lastInsertRowid });
 });
 
@@ -217,7 +246,7 @@ router.post('/admin/api/case', requireAdminApi, (req, res) => {
 });
 
 // 可归档实体（文章走 posts.status，不在此表）
-const ENTITY_TABLES = { course: 'courses', tool: 'tools', case: 'cases' };
+const ENTITY_TABLES = { product: 'products', tool: 'tools', case: 'cases', document: 'documents' };
 
 // 删除：四类统一两段式——首次=归档下线（前台隐藏、可恢复），归档态再删=彻底移除（文章评论级联）
 router.post('/admin/api/delete', requireAdminApi, (req, res) => {
@@ -334,54 +363,13 @@ router.post('/admin/api/token-revoke', requireAdminApi, (req, res) => {
 
 // ============================================================ 页面内容 / 诊断知识库
 router.post('/admin/api/content', requireAdminApi, (req, res) => {
-  const { key, value } = req.body || {};
+  const { key, value, locale } = req.body || {};
   try {
-    content.save(String(key), value == null ? '' : String(value));
+    content.save(String(key), value == null ? '' : String(value), locale);
     res.json({ ok: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
-});
-
-router.post('/admin/api/kb', requireAdminApi, (req, res) => {
-  const { spotLibrary, foundationNotes, stageTemplates, summaryTemplate } = req.body || {};
-  try {
-    const kb = {};
-    if (spotLibrary && typeof spotLibrary === 'object') {
-      kb.spotLibrary = {};
-      for (const [domain, items] of Object.entries(spotLibrary)) {
-        const arr = Array.isArray(items) ? items.map(s => String(s).trim()).filter(Boolean) : [];
-        if (arr.length < 5) return res.status(400).json({ error: `「${domain}」至少需要 5 条结合点（当前 ${arr.length} 条）` });
-        kb.spotLibrary[domain] = arr;
-      }
-    }
-    if (Array.isArray(foundationNotes)) {
-      const arr = foundationNotes.map(s => String(s).trim());
-      if (arr.length !== 4 || arr.some(s => !s)) return res.status(400).json({ error: '基础评语需 4 条且不能为空（对应问卷第 1 题四个选项）' });
-      kb.foundationNotes = arr;
-    }
-    if (Array.isArray(stageTemplates)) {
-      if (stageTemplates.length !== 3 || stageTemplates.some(s => !s.name || !s.window || !s.desc)) {
-        return res.status(400).json({ error: '阶段模板需 3 条且名称/时间窗/说明齐全' });
-      }
-      kb.stageTemplates = stageTemplates.map(s => ({ name: String(s.name), window: String(s.window), desc: String(s.desc) }));
-    }
-    if (summaryTemplate !== undefined) {
-      if (!String(summaryTemplate).includes('{focus}')) return res.status(400).json({ error: '摘要模板必须包含 {focus} 占位符' });
-      kb.summaryTemplate = String(summaryTemplate);
-    }
-    setSetting('diagnosis_kb', JSON.stringify(kb));
-    config.logActivity('admin', 'kb_save', '', '诊断知识库已更新', true);
-    res.json({ ok: true });
-  } catch (e) {
-    res.status(400).json({ error: e.message });
-  }
-});
-
-router.post('/admin/api/kb-reset', requireAdminApi, (req, res) => {
-  db.prepare("DELETE FROM settings WHERE key='diagnosis_kb'").run();
-  config.logActivity('admin', 'kb_reset', '', '诊断知识库恢复默认', true);
-  res.json({ ok: true });
 });
 
 // ============================================================ 图片上传

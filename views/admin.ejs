@@ -120,33 +120,17 @@
       <div class="grid-cards3" style="gap:20px;margin-top:28px">
         <div class="card" style="padding:20px"><span class="card-kicker">注册用户</span><span class="tnum" style="font-family:'Cormorant Garamond',serif;font-size:34px"><%= fmtNum(dash.usersTotal) %></span></div>
         <div class="card" style="padding:20px"><span class="card-kicker">本月新增</span><span class="tnum" style="font-family:'Cormorant Garamond',serif;font-size:34px;color:var(--color-accent)"><%= fmtNum(dash.usersMonth) %></span></div>
-        <div class="card" style="padding:20px"><span class="card-kicker">诊断提交</span><span class="tnum" style="font-family:'Cormorant Garamond',serif;font-size:34px"><%= fmtNum(counts.submissions) %></span></div>
+        <div class="card" style="padding:20px"><span class="card-kicker">AI 草稿待审</span><span class="tnum" style="font-family:'Cormorant Garamond',serif;font-size:34px"><%= fmtNum(counts.draftsPending) %></span></div>
       </div>
       <div class="card" style="padding:28px;margin-top:20px">
         <table class="table">
           <thead><tr><th>用户</th><th>角色</th><th>注册时间</th><th>来源</th><th>工具使用</th></tr></thead>
           <tbody id="user-rows">
             <% for (const u of users) { %>
-            <tr><td><%= u.name %> · <%= u.email %></td><td><%= u.role === 'admin' ? '管理员' : '会员' %></td><td class="tnum"><%= fmtDate(u.created_at) %></td><td><%= u.source %></td><td class="tnum"><%= u.tool_uses %> 次</td></tr>
+            <tr><td><%= u.name %> · <%= u.email %></td><td><%= u.role === 'admin' ? '管理员' : (u.role === 'installer' ? '安装工' : '消费者') %></td><td class="tnum"><%= fmtDate(u.created_at) %></td><td><%= u.source %></td><td class="tnum"><%= u.tool_uses %> 次</td></tr>
             <% } %>
           </tbody>
         </table>
-      </div>
-
-      <div class="card" style="padding:28px;margin-top:20px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="card-kicker">诊断提交记录 · Diagnosis</span><span class="card-meta">最近 20 条 · 共 <%= fmtNum(counts.submissions) %> 条</span></div>
-        <% if (submissions.length === 0) { %>
-        <p style="font-size:13px;color:var(--color-neutral-600);margin:14px 0 0">暂无诊断提交。</p>
-        <% } else { %>
-        <table class="table" style="margin-top:9.2px">
-          <thead><tr><th>企业</th><th>邮箱</th><th>评级</th><th style="text-align:right">结合点</th><th>生成方式</th><th>报告邮件</th><th>时间</th></tr></thead>
-          <tbody>
-            <% for (const s of submissions) { %>
-            <tr><td><%= s.company %></td><td><%= s.email %></td><td class="tnum"><%= s.level %> / L5</td><td class="tnum" style="text-align:right"><%= s.spots %></td><td><%= s.generator === 'llm' ? 'LLM' : '模板' %></td><td><%= s.emailed ? '已发送' : '未发送' %></td><td class="tnum"><%= fmtDate(s.created_at) %></td></tr>
-            <% } %>
-          </tbody>
-        </table>
-        <% } %>
       </div>
 
       <div class="card" style="padding:28px;margin-top:20px">
@@ -183,8 +167,9 @@
 </div>
 
 <script type="application/json" id="admin-data"><%- JSON.stringify({
-  posts: posts.map(p => ({ id: p.id, title: p.title, category: p.category, excerpt: p.excerpt, content_md: p.content_md, read_minutes: p.read_minutes, status: p.status })),
-  courses: courses.map(c => ({ id: c.id, title: c.title, description: c.description, lectures: c.lectures, price_yuan: c.price_cents == null ? '' : Math.round(c.price_cents / 100), status: c.status, tag: c.tag, kicker: c.kicker, cover_url: c.cover_url || '' })),
+  posts: posts.map(p => ({ id: p.id, title: p.title, category: p.category, excerpt: p.excerpt, content_md: p.content_md, read_minutes: p.read_minutes, status: p.status, locale: p.locale || 'it' })),
+  products: products.map(p => ({ id: p.id, slug: p.slug, category: p.category, name_it: p.name_it, name_en: p.name_en, desc_it: p.desc_it, desc_en: p.desc_en, specs_json: p.specs_json, efficiency: p.efficiency })),
+  documents: documents.map(d => ({ id: d.id, title_it: d.title_it, title_en: d.title_en, product_id: d.product_id, doctype: d.doctype, file: d.file, lang: d.lang, version: d.version, size: d.size })),
   tools: tools.map(t => ({ id: t.id, name: t.name, description: t.description, status: t.status, url: t.url })),
   cases: cases.map(c => ({ id: c.id, org: c.org, title: c.title, description: c.description, metric_value: c.metric_value, metric_label: c.metric_label, sort: c.sort })),
 }) %></script>

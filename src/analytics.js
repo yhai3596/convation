@@ -107,17 +107,17 @@ function dashboard(days) {
   // 注册转化漏斗
   const visits = uv;
   const browsed = count(`SELECT COUNT(DISTINCT sid) c FROM analytics_events
-    WHERE type='pageview' AND (path LIKE '/tools%' OR path LIKE '/courses%') AND ${W}`);
+    WHERE type='pageview' AND (path LIKE '/prodotti%' OR path LIKE '/strumenti%' OR path LIKE '/en/products%' OR path LIKE '/en/hvac-tools%') AND ${W}`);
   const loginPage = count(`SELECT COUNT(DISTINCT sid) c FROM analytics_events
-    WHERE type='pageview' AND path LIKE '/login%' AND ${W}`);
+    WHERE type='pageview' AND path LIKE '%/login%' AND ${W}`);
   const registered = count(`SELECT COUNT(*) c FROM analytics_events WHERE type='register' AND ${W}`);
-  const submitted = count(`SELECT COUNT(*) c FROM analytics_events WHERE type='diagnosis_submit' AND ${W}`);
+  const interested = count(`SELECT COUNT(*) c FROM analytics_events WHERE type='product_interest' AND ${W}`);
   const funnel = [
     { label: '访问站点', n: visits },
-    { label: '浏览工具/课程', n: browsed },
+    { label: '浏览产品/工具', n: browsed },
     { label: '进入注册页', n: loginPage },
     { label: '完成注册', n: registered },
-    { label: '提交诊断', n: submitted },
+    { label: '产品咨询意向', n: interested },
   ].map(f => ({ ...f, pct: pct(f.n, visits) }));
 
   // 文章阅读 Top 5

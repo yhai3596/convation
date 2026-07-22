@@ -50,27 +50,37 @@
   }
 
   var SCHEMAS = {
-    post: function (d) { d = d || { title: '', category: '行业观察', excerpt: '', content_md: '', read_minutes: 5, status: 'draft' }; return [
+    post: function (d) { d = d || { title: '', category: 'Incentivi', excerpt: '', content_md: '', read_minutes: 5, status: 'draft', locale: 'it' }; return [
       field('标题', 'title', d.title), field('分类', 'category', d.category),
       field('摘要', 'excerpt', d.excerpt, 'textarea'), field('正文（Markdown）', 'content_md', d.content_md, 'textarea'),
       field('阅读时长（分钟）', 'read_minutes', d.read_minutes, 'number'),
+      field('语言', 'locale', d.locale || 'it', 'select', [['it', '意大利语'], ['en', '英语']]),
       field('状态', 'status', d.status, 'select', [['published', '已发布'], ['draft', '草稿'], ['archived', '已归档']]) ]; },
-    course: function (d) { d = d || { title: '', description: '', lectures: '', price_yuan: '', status: 'live', tag: '', kicker: '', cover_url: '' }; return [
-      field('课程名称', 'title', d.title), field('课程介绍', 'description', d.description, 'textarea'),
-      field('讲数', 'lectures', d.lectures, 'number'), field('价格（元，留空待定）', 'price_yuan', d.price_yuan, 'number'),
-      field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
-      field('角标（热门/进阶，可空）', 'tag', d.tag), field('封面图 URL（可在页面内容上传后填/uploads/...）', 'cover_url', d.cover_url) ]; },
+    product: function (d) { d = d || { slug: '', category: 'heatpump', name_it: '', name_en: '', desc_it: '', desc_en: '', specs_json: '{}', efficiency: '' }; return [
+      field('slug（URL 标识，留空自动生成）', 'slug', d.slug),
+      field('品类', 'category', d.category, 'select', [['heatpump', '热泵 Pompe di calore'], ['ac', '空调 Climatizzatori']]),
+      field('名称（意语）', 'name_it', d.name_it), field('名称（英语）', 'name_en', d.name_en),
+      field('描述（意语）', 'desc_it', d.desc_it, 'textarea'), field('描述（英语）', 'desc_en', d.desc_en, 'textarea'),
+      field('参数 JSON（如 {"Potenza":"8 kW"}）', 'specs_json', d.specs_json, 'textarea'),
+      field('能效等级（如 A+++）', 'efficiency', d.efficiency) ]; },
+    document: function (d) { d = d || { title_it: '', title_en: '', product_id: '', doctype: 'scheda', file: '', lang: 'it', version: '', size: '' }; return [
+      field('标题（意语）', 'title_it', d.title_it), field('标题（英语）', 'title_en', d.title_en),
+      field('关联产品 ID（可空）', 'product_id', d.product_id, 'number'),
+      field('类型', 'doctype', d.doctype, 'select', [['scheda', 'Scheda 技术表'], ['manuale', 'Manuale 手册'], ['cert', 'Certificazione 认证'], ['dichiarazione', 'Dichiarazione 符合性声明']]),
+      field('文件路径（/uploads/... 或 http(s)://）', 'file', d.file),
+      field('语言', 'lang', d.lang, 'select', [['it', 'IT'], ['en', 'EN'], ['it+en', 'IT+EN']]),
+      field('版本', 'version', d.version), field('大小（如 2.4MB）', 'size', d.size) ]; },
     tool: function (d) { d = d || { name: '', description: '', status: 'live', url: '' }; return [
       field('工具名称', 'name', d.name), field('工具介绍', 'description', d.description, 'textarea'),
       field('状态', 'status', d.status, 'select', [['live', '已上线'], ['coming', '筹备中']]),
       field('工具链接（http(s)://，留空=接入中）', 'url', d.url) ]; },
     case: function (d) { d = d || { org: '', title: '', description: '', metric_value: '', metric_label: '', sort: '' }; return [
-      field('客户描述（如 某暖通企业 · 华东）', 'org', d.org), field('案例标题', 'title', d.title),
+      field('客户描述（如 Villa unifamiliare · Monza）', 'org', d.org), field('案例标题', 'title', d.title),
       field('案例说明', 'description', d.description, 'textarea'),
-      field('指标数值（如 85%）', 'metric_value', d.metric_value), field('指标说明', 'metric_label', d.metric_label),
+      field('指标数值（如 -52%）', 'metric_value', d.metric_value), field('指标说明', 'metric_label', d.metric_label),
       field('排序（小在前）', 'sort', d.sort, 'number') ]; },
   };
-  var TYPE_NAMES = { post: '文章', course: '课程', tool: '工具', case: '案例' };
+  var TYPE_NAMES = { post: '文章', product: '产品', document: '文档', tool: '工具', case: '案例' };
 
   function openEditor(type, id) {
     var data = null;
