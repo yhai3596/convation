@@ -8,17 +8,18 @@
   var reloadTo = window.AdminReloadTo || function () { location.reload(); };
   function msg(el, ok, text) { if (!el) return; el.className = ok ? 'form-ok' : 'form-error'; el.textContent = text; el.style.minHeight = 'auto'; }
 
-  // ════════ 页面内容编辑 ════════
+  // ════════ 页面内容编辑（按 data-locale 双语保存） ════════
   document.querySelectorAll('.content-field').forEach(function (fieldEl) {
     var key = fieldEl.getAttribute('data-key');
     var type = fieldEl.getAttribute('data-type');
+    var locale = fieldEl.getAttribute('data-locale') || 'it';
     var input = fieldEl.querySelector('.cf-input');
     var m = fieldEl.querySelector('.cf-msg');
     var saveBtn = fieldEl.querySelector('.cf-save');
     var resetBtn = fieldEl.querySelector('.cf-reset');
 
     function save(val) {
-      post('/admin/api/content', { key: key, value: val }, function (ok, d) {
+      post('/admin/api/content', { key: key, value: val, locale: locale }, function (ok, d) {
         msg(m, ok, ok ? '已保存 ✓' : (d.error || '保存失败'));
         if (ok) setTimeout(function () { if (m) m.textContent = ''; }, 2000);
       });
@@ -40,7 +41,7 @@
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (res) {
           if (!res.ok) { msg(m, false, res.d.error || '上传失败'); return; }
-          post('/admin/api/content', { key: key, value: res.d.url }, function (ok2, d2) {
+          post('/admin/api/content', { key: key, value: res.d.url, locale: locale }, function (ok2, d2) {
             msg(m, ok2, ok2 ? '已更新 ✓' : (d2.error || '保存失败'));
             var prev = fieldEl.querySelector('.cf-preview');
             if (ok2 && prev && prev.tagName === 'IMG') prev.src = res.d.url;

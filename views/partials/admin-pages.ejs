@@ -1,22 +1,26 @@
-<!-- 页面内容：全站文案键值化编辑 + 图片上传（Phase F 全套CMS） -->
+<!-- 页面内容：全站文案键值化编辑（双语） + 图片上传 -->
 <div id="tab-pages" hidden>
   <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap">
     <h1 style="font-weight:400;font-size:34px;margin:0">页面内容</h1>
-    <span style="font-size:12px;color:var(--color-neutral-600)">改哪条存哪条 · 清空=恢复默认 · 前台即时生效</span>
+    <div class="seg" id="pages-locale-seg">
+      <label class="seg-opt"><input type="radio" name="pages-locale" value="it" checked>Italiano · 意语</label>
+      <label class="seg-opt"><input type="radio" name="pages-locale" value="en">English · 英语</label>
+    </div>
   </div>
+  <p style="font-size:12px;color:var(--color-neutral-600);margin:10px 0 0">改哪条存哪条 · 清空=恢复默认 · 前台即时生效 · <b>按当前页签语言保存</b>（意语键与英语键互不影响）</p>
 
   <%
-    // 把扁平 contentList 按分组归拢
-    const groups = [];
-    const byGroup = {};
-    for (const it of contentList) { if (!byGroup[it.group]) { byGroup[it.group] = []; groups.push(it.group); } byGroup[it.group].push(it); }
+    function renderContentList(list, loc) {
+      const groups = [];
+      const byGroup = {};
+      for (const it of list) { if (!byGroup[it.group]) { byGroup[it.group] = []; groups.push(it.group); } byGroup[it.group].push(it); }
+      for (const g of groups) {
   %>
-  <% for (const g of groups) { %>
   <div class="card" style="padding:24px;margin-top:20px">
     <span class="card-kicker"><%= g %></span>
     <div style="display:flex;flex-direction:column;gap:18px;margin-top:12px">
       <% for (const it of byGroup[g]) { %>
-      <div class="content-field" data-key="<%= it.key %>" data-type="<%= it.type %>">
+      <div class="content-field" data-key="<%= it.key %>" data-type="<%= it.type %>" data-locale="<%= loc %>">
         <label style="display:block;font-size:12px;color:var(--color-neutral-600);margin-bottom:5px"><%= it.label %><% if (it.overridden) { %> <span style="color:var(--color-accent)">· 已自定义</span><% } %></label>
         <% if (it.type === 'image') { %>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
@@ -39,5 +43,16 @@
       <% } %>
     </div>
   </div>
-  <% } %>
+  <% } } %>
+
+  <div id="pages-locale-it"><% renderContentList(contentList, 'it'); %></div>
+  <div id="pages-locale-en" hidden><% renderContentList(contentListEn, 'en'); %></div>
 </div>
+
+<script>
+document.getElementById('pages-locale-seg').addEventListener('change', function (e) {
+  var loc = e.target.value;
+  document.getElementById('pages-locale-it').hidden = loc !== 'it';
+  document.getElementById('pages-locale-en').hidden = loc !== 'en';
+});
+</script>

@@ -372,16 +372,16 @@ router.post('/admin/api/content', requireAdminApi, (req, res) => {
   }
 });
 
-// ============================================================ 图片上传
+// ============================================================ 文件上传（图片 + PDF 文档）
 const UPLOAD_DIR = path.join(__dirname, '..', '..', 'public', 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 } });
-const IMG_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' };
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+const IMG_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf' };
 
 router.post('/admin/api/upload', requireAdminApi, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: '未收到文件' });
   const ext = IMG_TYPES[req.file.mimetype];
-  if (!ext) return res.status(400).json({ error: '仅支持 JPG / PNG / WebP 图片' });
+  if (!ext) return res.status(400).json({ error: '仅支持 JPG / PNG / WebP 图片或 PDF 文档' });
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}${ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), req.file.buffer);
   res.json({ ok: true, url: `/uploads/${name}` });
