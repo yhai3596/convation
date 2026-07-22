@@ -1,0 +1,20 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Referenze</span>
+    <h1><%- ct('referenze.hero_title') %></h1>
+    <p class="lede"><%- ct('referenze.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="card" style="align-items:flex-start;padding:42px 28px;background:var(--color-neutral-100)">
+      <p style="margin:0;font-size:15px;color:var(--color-neutral-700)"><%- ct('referenze.empty_note') %></p>
+      <a class="btn btn-secondary" href="/consulenza" style="text-decoration:none;margin-top:16px">Richiedi un sopralluogo gratuito →</a>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

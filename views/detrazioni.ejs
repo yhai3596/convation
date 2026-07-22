@@ -1,0 +1,30 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Detrazioni e incentivi</span>
+    <h1><%- ct('detrazioni.hero_title') %></h1>
+    <p class="lede"><%- ct('detrazioni.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 28px">
+    <div class="grid-cards2">
+      <div class="card" style="padding:28px;background:#fff">
+        <span class="card-kicker">GSE · incentivo diretto</span>
+        <span class="card-title" style="font-size:22px"><%- ct('detrazioni.box1_title') %></span>
+        <span class="card-body" style="font-size:14.5px;opacity:1;color:var(--color-neutral-700)"><%- ct('detrazioni.box1_body') %></span>
+      </div>
+      <div class="card" style="padding:28px;background:#fff">
+        <span class="card-kicker">IRPEF · 10 anni</span>
+        <span class="card-title" style="font-size:22px"><%- ct('detrazioni.box2_title') %></span>
+        <span class="card-body" style="font-size:14.5px;opacity:1;color:var(--color-neutral-700)"><%- ct('detrazioni.box2_body') %></span>
+      </div>
+    </div>
+    <p style="font-size:12.5px;color:var(--color-neutral-600);margin-top:22px;max-width:80ch"><%- ct('detrazioni.disclaimer') %></p>
+    <a class="btn btn-primary" href="/consulenza" style="text-decoration:none;margin-top:10px">Verifica la tua fattibilità →</a>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

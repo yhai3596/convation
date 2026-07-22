@@ -70,9 +70,12 @@ app.locals.money = cents => (cents == null ? '—' : `¥ ${Math.round(cents / 10
 // 静态资源版本号（每次进程启动变化；autopull 部署会重启进程 → 自动刷新浏览器缓存）
 app.locals.assetVer = Date.now().toString(36);
 // 站点文案键值层（后台「页面内容」可编辑，默认值=设计稿文案）
-app.locals.ct = siteContent.ct;
-app.locals.ctBr = siteContent.ctBr;
-app.locals.ctImg = siteContent.ctImg;
+// i18n：P1 先绑定意语；P2 将改为按路由 locale 绑定（/en 前缀 + hreflang）
+const siteLocale = siteContent.forLocale('it');
+app.locals.locale = siteLocale.locale;
+app.locals.ct = siteLocale.ct;
+app.locals.ctBr = siteLocale.ctBr;
+app.locals.ctImg = siteLocale.ctImg;
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;

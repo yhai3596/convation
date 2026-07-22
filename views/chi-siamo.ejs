@@ -1,0 +1,38 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Chi siamo</span>
+    <h1><%- ct('chisiamo.hero_title') %></h1>
+    <p class="lede"><%- ct('chisiamo.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 42px;max-width:820px">
+    <h2 style="font-size:28px"><%- ct('chisiamo.story_title') %></h2>
+    <p style="font-size:16px;line-height:1.75;color:var(--color-neutral-700)"><%- ctBr('chisiamo.story_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="svc-grid">
+      <div class="svc-card">
+        <span class="card-kicker">01</span>
+        <h4><%- ct('chisiamo.val1_title') %></h4>
+        <p><%- ct('chisiamo.val1_body') %></p>
+      </div>
+      <div class="svc-card">
+        <span class="card-kicker">02</span>
+        <h4><%- ct('chisiamo.val2_title') %></h4>
+        <p><%- ct('chisiamo.val2_body') %></p>
+      </div>
+      <div class="svc-card">
+        <span class="card-kicker">03</span>
+        <h4><%- ct('chisiamo.val3_title') %></h4>
+        <p><%- ct('chisiamo.val3_body') %></p>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

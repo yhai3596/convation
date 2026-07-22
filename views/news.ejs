@@ -1,0 +1,38 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">News</span>
+    <h1><%- ct('news.hero_title') %></h1>
+    <p class="lede"><%- ct('news.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="card" style="align-items:flex-start;padding:42px 28px;background:var(--color-neutral-100)">
+      <p style="margin:0;font-size:15px;color:var(--color-neutral-700)"><%- ct('news.empty_note') %></p>
+      <form id="news-subscribe" style="display:flex;gap:12px;margin-top:18px;max-width:440px;width:100%">
+        <input class="input" type="email" id="news-sub-email" placeholder="<%- ct('ui.form_email') %>" required style="flex:1">
+        <button type="submit" class="btn btn-primary"><%- ct('ui.send') %></button>
+      </form>
+      <p class="form-ok" id="news-sub-msg" style="margin-top:8px"></p>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<script>
+document.getElementById('news-subscribe').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var email = document.getElementById('news-sub-email').value.trim();
+  var msg = document.getElementById('news-sub-msg');
+  fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+      msg.className = res.ok ? 'form-ok' : 'form-error';
+      msg.textContent = res.ok ? '<%- ct("ui.form_ok") %>' : (res.d.error || 'Errore');
+    })
+    .catch(function () { msg.className = 'form-error'; msg.textContent = 'Errore di rete, riprova.'; });
+});
+</script>
+<%- include('partials/tail') %>

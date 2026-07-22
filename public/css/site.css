@@ -1,7 +1,7 @@
 /* 页面级共享样式（设计稿 helmet 内联样式的沉淀）+ 响应式 */
 [hidden]{display:none !important}
-body{margin:0;text-wrap:pretty;font-family:"Lora","Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif}
-h1,h2,h3,h4,h5,h6{font-family:"Cormorant Garamond","Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif}
+body{margin:0;text-wrap:pretty;font-family:"Inter",system-ui,sans-serif}
+h1,h2,h3,h4,h5,h6{font-family:"Archivo",system-ui,sans-serif}
 a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
 .nav a{white-space:nowrap}.btn{white-space:nowrap}.tag{white-space:nowrap}
 .table th,.table td{white-space:nowrap}.table td:first-child{white-space:normal}
@@ -44,7 +44,7 @@ a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
 
 /* 占位图槽（课程封面/培训照片，正式图片后续在后台替换） */
 .img-slot{width:100%;height:100%;min-height:100%;display:grid;place-items:center;background:repeating-linear-gradient(45deg,var(--color-neutral-100),var(--color-neutral-100) 12px,var(--color-neutral-200) 12px,var(--color-neutral-200) 13px)}
-.img-slot span{font-family:"Cormorant Garamond","Noto Serif SC",serif;font-size:14px;color:var(--color-neutral-600);background:var(--color-bg);padding:4px 12px;border:1px solid var(--color-divider)}
+.img-slot span{font-family:"Archivo",system-ui,sans-serif;font-size:14px;color:var(--color-neutral-600);background:var(--color-bg);padding:4px 12px;border:1px solid var(--color-divider)}
 
 /* 轻提示 */
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;background:var(--color-bg);border:1px solid var(--color-accent);color:var(--color-accent-800);padding:10px 18px;border-radius:var(--radius-md);box-shadow:var(--shadow-md);font-size:14px;max-width:min(520px,90vw);text-align:center}
@@ -61,6 +61,72 @@ a{color:var(--color-accent)}a:hover{color:var(--color-accent-600)}
 .diag-option.on .diag-dot{border-color:var(--color-accent)}
 .diag-dot i{width:8px;height:8px;border-radius:50%;background:transparent}
 .diag-option.on .diag-dot i{background:var(--color-accent)}
+
+/* ═══ Convation 组件（DESIGN.md §6/§7） ═══ */
+/* 顶条：联系 + Area Riservata */
+.topbar{background:var(--color-accent-900);color:#CBD8E6;font-size:12.5px}
+.topbar-inner{max-width:1200px;margin:0 auto;padding:7px clamp(20px,5vw,72px);display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.topbar a{color:#fff;text-decoration:none}
+.topbar a:hover{color:var(--color-accent-2-300)}
+.topbar .tb-group{display:flex;gap:18px;flex-wrap:wrap}
+
+/* 页面 hero（内页通用） */
+.page-hero{padding:64px 0 42px}
+.page-hero h1{font-size:clamp(34px,4vw,52px);margin:10px 0 0}
+.page-hero .lede{font-size:17px;max-width:62ch;margin:20px 0 0;color:color-mix(in srgb,var(--color-text) 85%,transparent)}
+
+/* 双轨分流卡 */
+.track-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:36px}
+.track-card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:28px;transition:box-shadow .2s,border-color .2s}
+.track-card:hover{border-color:var(--color-accent);box-shadow:var(--shadow-md)}
+.track-card .tc-kicker{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent);font-weight:600}
+.track-card h3{font-size:24px;margin:10px 0 8px}
+.track-card p{font-size:14.5px;margin:0;color:var(--color-neutral-700)}
+.track-card .tc-go{display:inline-block;margin-top:18px;font-size:14px;color:var(--color-accent-2-600);font-weight:600}
+
+/* 产品双品类卡（冷暖编码） */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.cat-card{position:relative;display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:30px;overflow:hidden}
+.cat-card::before{content:'';position:absolute;inset:0 auto 0 0;width:5px;background:var(--cat-color,var(--color-accent))}
+.cat-card:hover{box-shadow:var(--shadow-md)}
+.cat-card h3{font-size:26px;margin:0 0 10px;padding-left:14px}
+.cat-card p{font-size:14.5px;margin:0;padding-left:14px;color:var(--color-neutral-700)}
+.cat-card .cc-tag{display:inline-block;margin:0 0 0 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:3px;background:var(--cat-bg,var(--color-accent-100));color:var(--cat-deep,var(--color-accent-800));font-weight:600}
+
+/* 深色区块 */
+.band-dark{background:var(--color-accent-900);color:#DCE6F0}
+.band-dark h2,.band-dark h3{color:#fff}
+.band-dark .kicker{color:var(--color-accent-2-300)}
+.band-dark a{color:#fff}
+
+/* 信任条 */
+.trustbar{display:flex;gap:clamp(24px,5vw,72px);flex-wrap:wrap;align-items:center;padding:26px 0;border-top:1px solid var(--color-divider);border-bottom:1px solid var(--color-divider)}
+.trustbar .tb-item{font-size:13.5px;color:var(--color-neutral-700);display:flex;align-items:center;gap:9px}
+.trustbar .tb-item b{color:var(--color-heading);font-family:"Archivo";font-size:17px}
+
+/* 服务入口三卡 */
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:28px}
+.svc-card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--color-divider);border-radius:var(--radius-lg);padding:24px}
+.svc-card:hover{border-color:var(--color-accent);box-shadow:var(--shadow-sm)}
+.svc-card h4{font-size:18px;margin:12px 0 6px}
+.svc-card p{font-size:13.5px;margin:0;color:var(--color-neutral-700)}
+
+/* 能效徽章（欧盟能标色） */
+.eei{display:inline-grid;place-items:center;min-width:44px;padding:2px 8px;font-family:"Archivo";font-weight:700;font-size:12px;color:#fff;border-radius:3px;background:#00A651}
+.eei.e2{background:#4CB748}.eei.e3{background:#BFD630}.eei.e4{background:#FFF200;color:#333}
+
+/* 文档行（安装工高频） */
+.doc-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--color-divider);font-size:14px}
+.doc-row .doc-type{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent);font-weight:700}
+.doc-row .doc-meta{font-size:12px;color:var(--color-neutral-600);white-space:nowrap}
+
+/* 工具嵌入卡 */
+.tool-frame{width:100%;aspect-ratio:16/10;border:1px solid var(--color-divider);border-radius:var(--radius-md);background:#fff}
+
+@media (max-width:920px){
+  .track-grid,.cat-grid,.svc-grid{grid-template-columns:1fr}
+  .doc-row{grid-template-columns:auto 1fr;row-gap:4px}
+}
 
 /* 管理后台 */
 .admin-shell{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:100vh}

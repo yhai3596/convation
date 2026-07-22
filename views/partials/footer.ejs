@@ -1,4 +1,32 @@
-<footer class="site-footer">
-  <span>© 2026 Alan · HVAC × AI</span>
-  <span style="display:flex;gap:20px"><a href="/about" style="color:inherit">联系方式</a><a href="/admin" style="color:inherit">管理后台</a></span>
+<footer class="site-footer" style="display:block">
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:36px;padding-bottom:36px" class="footer-cols">
+    <div>
+      <img src="/assets/logo.jpg" alt="Convation" style="height:30px;width:auto;margin-bottom:14px">
+      <p style="margin:0;font-size:13px;line-height:22px">Vendita, installazione e assistenza di pompe di calore e climatizzatori in tutta Italia.</p>
+    </div>
+    <div>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Prodotti</p>
+      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="/prodotti" style="color:inherit">Pompe di calore</a><a href="/prodotti" style="color:inherit">Climatizzatori</a><a href="/strumenti" style="color:inherit">Strumenti HVAC</a></p>
+    </div>
+    <div>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Supporto</p>
+      <p style="margin:0;display:flex;flex-direction:column;gap:7px"><a href="/documentazione" style="color:inherit">Documentazione</a><a href="/detrazioni" style="color:inherit">Detrazioni</a><a href="/assistenza" style="color:inherit">Assistenza</a><a href="/login" style="color:inherit">Area Riservata</a></p>
+    </div>
+    <div>
+      <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 10px">Contatti</p>
+      <p style="margin:0;display:flex;flex-direction:column;gap:7px">
+        <span><%- ct('site.address') %></span>
+        <a href="tel:<%- ct('site.phone').replace(/\s/g,'') %>" style="color:inherit"><%- ct('site.phone') %></a>
+        <a href="mailto:<%- ct('site.email_info') %>" style="color:inherit"><%- ct('site.email_info') %></a>
+        <a href="mailto:<%- ct('site.email_support') %>" style="color:inherit"><%- ct('site.email_support') %></a>
+      </p>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--color-divider);padding-top:18px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--color-neutral-500)">
+    <span><%- ct('site.piva') %></span>
+    <span style="display:flex;gap:18px"><a href="/contatti" style="color:inherit">Contatti</a><a href="/privacy" style="color:inherit">Privacy</a><a href="/admin" style="color:inherit">Admin</a></span>
+  </div>
 </footer>
+<style>
+@media (max-width:920px){.footer-cols{grid-template-columns:1fr 1fr !important}}
+</style>

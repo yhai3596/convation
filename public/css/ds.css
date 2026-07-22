@@ -1,50 +1,53 @@
 /* Classical — design-system tokens and component classes. This file is the source of truth for the system's look; retune it here and see readme.md. */
 
 :root {
-  --color-bg: #f3f2f2;
-  --color-surface: #eae9e9;
-  --color-text: #201f1d;
-  --color-accent: #b68235;
-  --color-accent-2: #ac803e;
-  --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
+  --color-bg: #FAFAF8;
+  --color-surface: #F0EFEA;
+  --color-text: #52606D;
+  --color-heading: #1F2933;
+  --color-accent: #0F4C8C;
+  --color-accent-2: #E06B3A;
+  --color-divider: #E4E2DC;
 
-  /* Tonal ramps — generated in OKLCH on one shared lightness scale, so the
-     same step of any role matches the others in visual value. */
-  --color-neutral-100: #f8f4f4;
-  --color-neutral-200: #eae7e7;
-  --color-neutral-300: #d7d3d3;
-  --color-neutral-400: #bab6b6;
-  --color-neutral-500: #9b9797;
-  --color-neutral-600: #7d7979;
-  --color-neutral-700: #605d5d;
-  --color-neutral-800: #444141;
-  --color-neutral-900: #2d2b2b;
+  /* Tonal ramps — blue (brand, from logo) + warm orange (CTA / heat). */
+  --color-neutral-100: #F5F4F1;
+  --color-neutral-200: #EAE8E3;
+  --color-neutral-300: #D8D5CE;
+  --color-neutral-400: #B9B5AC;
+  --color-neutral-500: #9AA5B1;
+  --color-neutral-600: #7D8A97;
+  --color-neutral-700: #52606D;
+  --color-neutral-800: #323F4B;
+  --color-neutral-900: #1F2933;
 
-  --color-accent-100: #fff3e4;
-  --color-accent-200: #ffe3bf;
-  --color-accent-300: #facb8d;
-  --color-accent-400: #e1ad66;
-  --color-accent-500: #c28d41;
-  --color-accent-600: #a06f24;
-  --color-accent-700: #7d5411;
-  --color-accent-800: #5a3b0a;
-  --color-accent-900: #3a270d;
+  --color-accent-100: #E9F1FA;
+  --color-accent-200: #CBDEF3;
+  --color-accent-300: #A3C3E8;
+  --color-accent-400: #6FA0D8;
+  --color-accent-500: #3F7CC2;
+  --color-accent-600: #0F4C8C;
+  --color-accent-700: #0D4279;
+  --color-accent-800: #0B3663;
+  --color-accent-900: #0A2E5C;
 
-  --color-accent-2-100: #fff3e4;
-  --color-accent-2-200: #ffe3be;
-  --color-accent-2-300: #f5cd96;
-  --color-accent-2-400: #dbaf70;
-  --color-accent-2-500: #bc8f4e;
-  --color-accent-2-600: #9b7232;
-  --color-accent-2-700: #79561f;
-  --color-accent-2-800: #573d14;
-  --color-accent-2-900: #382810;
+  --color-accent-2-100: #FDEEE5;
+  --color-accent-2-200: #FADCC9;
+  --color-accent-2-300: #F5C0A0;
+  --color-accent-2-400: #EE9A6C;
+  --color-accent-2-500: #E06B3A;
+  --color-accent-2-600: #C95729;
+  --color-accent-2-700: #A84620;
+  --color-accent-2-800: #83371B;
+  --color-accent-2-900: #5C2712;
 
-  --font-heading: "Cormorant Garamond", system-ui, sans-serif;
-  --font-heading-weight: 600; /* review round 3: bold retired — semibold is the
-     interface headings' ceiling (they need the weight at small sizes); display
-     text goes lighter still, to the normal cut (see the deck) */
-  --font-body: "Lora", system-ui, sans-serif;
+  /* Cool ramp — AC category coding (DESIGN.md §4 accent-cool). */
+  --color-cool-100: #EAF4F8;
+  --color-cool-500: #7FB3C8;
+  --color-cool-800: #3D6B7E;
+
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-heading-weight: 600;
+  --font-body: "Inter", system-ui, sans-serif;
 
   --space-1: 4.6px;
   --space-2: 9.2px;
@@ -58,10 +61,10 @@
   --radius-lg: 7px;
 
   /* Elevation — derived from the ground: soft ink-tinted shadows on a
-     light theme, a hairline edge + ambient darkness on a dark one. */
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
+    light theme, a hairline edge + ambient darkness on a dark one. */
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #1F2933 12%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #1F2933 14%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #1F2933 20%, transparent);
 }
 
 body {
@@ -69,9 +72,9 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
 }
-h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); }
+h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-heading-weight); color: var(--color-heading); }
 
-.plate{filter:sepia(0.22) saturate(0.82) contrast(1.05);box-sizing:border-box;
+.plate{box-sizing:border-box;
   border:6px solid var(--color-surface);outline:1px solid var(--color-divider)}
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -81,14 +84,14 @@ h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-headi
    ══════════════════════════════════════════════════════════════════════ */
 
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }
+body { margin: 0; font-size: 16px; line-height: 1.65; font-weight: 400; }
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+  line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 var(--space-2);
 }
-h1 { font-size: 42px; }
-h2 { font-size: 32px; }
-h3 { font-size: 25px; }
+h1 { font-size: 52px; }
+h2 { font-size: 36px; }
+h3 { font-size: 24px; }
 h4 { font-size: 20px; }
 h5 { font-size: 16px; }
 h6 { font-size: 13px; }
@@ -125,12 +128,12 @@ figcaption {
 }
 .btn svg { display: block; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
-.btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
-.btn-primary:active { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
-.btn-secondary { border-color: var(--color-divider); }
-.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-primary { color: #fff; background: var(--color-accent-2-500); border-color: transparent; }
+.btn-primary:hover { background: var(--color-accent-2-600); }
+.btn-primary:active { background: var(--color-accent-2-700); }
+.btn-secondary { color: var(--color-accent); border-color: var(--color-accent); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
 .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
 .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }

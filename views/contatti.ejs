@@ -1,0 +1,54 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Contatti</span>
+    <h1><%- ct('contatti.hero_title') %></h1>
+    <p class="lede"><%- ct('contatti.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="grid-about" style="padding:0">
+      <div>
+        <p style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-500);margin:0 0 12px">Convation S.r.l.</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:26px"><%- ct('site.address') %></p>
+        <p style="margin:0 0 8px;font-size:14.5px">☎ <a href="tel:<%- ct('site.phone').replace(/\s/g,'') %>"><%- ct('site.phone') %></a></p>
+        <p style="margin:0 0 8px;font-size:14.5px">✉ <a href="mailto:<%- ct('site.email_info') %>"><%- ct('site.email_info') %></a> <span style="color:var(--color-neutral-500);font-size:12.5px">(commerciale)</span></p>
+        <p style="margin:0 0 8px;font-size:14.5px">✉ <a href="mailto:<%- ct('site.email_support') %>"><%- ct('site.email_support') %></a> <span style="color:var(--color-neutral-500);font-size:12.5px">(assistenza)</span></p>
+        <p style="margin:14px 0 0;font-size:13px;color:var(--color-neutral-600)"><%- ct('contatti.hours') %></p>
+      </div>
+      <div>
+        <h3 style="margin:0 0 16px;font-size:20px"><%- ct('contatti.form_title') %></h3>
+        <form id="contact-form" style="display:flex;flex-direction:column;gap:14px;max-width:520px">
+          <div class="field"><label for="cf-name"><%- ct('ui.form_name') %></label><input class="input" id="cf-name" required maxlength="40"></div>
+          <div class="field"><label for="cf-email"><%- ct('ui.form_email') %></label><input class="input" id="cf-email" type="email" required maxlength="80"></div>
+          <div class="field"><label for="cf-body"><%- ct('ui.form_msg') %></label><textarea class="input" id="cf-body" required maxlength="2000"></textarea></div>
+          <div><button type="submit" class="btn btn-primary"><%- ct('ui.send') %></button></div>
+          <p id="cf-msg" style="margin:0"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<script>
+document.getElementById('contact-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var msg = document.getElementById('cf-msg');
+  fetch('/api/message', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+    name: document.getElementById('cf-name').value,
+    email: document.getElementById('cf-email').value,
+    body: document.getElementById('cf-body').value,
+  }) })
+    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    .then(function (res) {
+      msg.className = res.ok ? 'form-ok' : 'form-error';
+      msg.textContent = res.ok ? '<%- ct("ui.form_ok") %>' : (res.d.error || 'Errore');
+      if (res.ok) document.getElementById('contact-form').reset();
+    })
+    .catch(function () { msg.className = 'form-error'; msg.textContent = 'Errore di rete, riprova.'; });
+});
+</script>
+<%- include('partials/tail') %>

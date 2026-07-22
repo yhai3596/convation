@@ -1,0 +1,34 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Consulenza</span>
+    <h1><%- ct('consulenza.hero_title') %></h1>
+    <p class="lede"><%- ct('consulenza.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div class="grid-cards2">
+      <div class="card" style="padding:30px;background:#fff;border-color:var(--color-accent)">
+        <span class="card-kicker">24/7 · risposta immediata</span>
+        <span class="card-title" style="font-size:22px"><%- ct('consulenza.ai_title') %></span>
+        <span class="card-body" style="font-size:14.5px;opacity:1;color:var(--color-neutral-700)"><%- ct('consulenza.ai_body') %></span>
+        <span style="font-size:13px;color:var(--color-accent);margin-top:6px">⬇ Provalo dall’icona in basso a destra</span>
+      </div>
+      <div class="card" style="padding:30px;background:#fff">
+        <span class="card-kicker"><%- ct('contatti.hours') %></span>
+        <span class="card-title" style="font-size:22px"><%- ct('consulenza.human_title') %></span>
+        <span class="card-body" style="font-size:14.5px;opacity:1;color:var(--color-neutral-700)"><%- ct('consulenza.human_body') %></span>
+        <span style="display:flex;flex-direction:column;gap:8px;margin-top:10px;font-size:14px">
+          <span>☎ <a href="tel:<%- ct('site.phone').replace(/\s/g,'') %>"><%- ct('site.phone') %></a></span>
+          <span>✉ <a href="mailto:<%- ct('site.email_info') %>"><%- ct('site.email_info') %></a></span>
+          <% if (ct('site.whatsapp')) { %><span>◈ WhatsApp: <%- ct('site.whatsapp') %></span><% } %>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

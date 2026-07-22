@@ -1,0 +1,26 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Documentazione</span>
+    <h1><%- ct('docs.hero_title') %></h1>
+    <p class="lede"><%- ct('docs.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 70px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px">
+      <span class="tag tag-accent">Schede tecniche</span>
+      <span class="tag tag-neutral">Manuali installazione</span>
+      <span class="tag tag-neutral">Certificazioni</span>
+      <span class="tag tag-neutral">Dichiarazioni conformità</span>
+    </div>
+    <div class="card" style="align-items:flex-start;padding:42px 28px;background:var(--color-neutral-100)">
+      <p style="margin:0;font-size:15px;color:var(--color-neutral-700)"><%- ct('docs.empty_note') %></p>
+      <a class="btn btn-secondary" href="mailto:<%- ct('site.email_support') %>" style="text-decoration:none;margin-top:16px"><%- ct('site.email_support') %></a>
+    </div>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

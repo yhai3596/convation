@@ -1,0 +1,36 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<div class="container">
+  <section class="page-hero">
+    <span class="kicker">Assistenza</span>
+    <h1><%- ct('assistenza.hero_title') %></h1>
+    <p class="lede"><%- ct('assistenza.hero_body') %></p>
+  </section>
+
+  <section style="padding:14px 0 42px">
+    <div class="svc-grid">
+      <% const svc = [
+        ['assistenza.s1_title','assistenza.s1_body'],
+        ['assistenza.s2_title','assistenza.s2_body'],
+        ['assistenza.s3_title','assistenza.s3_body'],
+      ]; %>
+      <% for (const [tk, bk] of svc) { %>
+      <div class="svc-card">
+        <span class="card-kicker">Assistenza</span>
+        <h4><%- ct(tk) %></h4>
+        <p><%- ct(bk) %></p>
+      </div>
+      <% } %>
+    </div>
+  </section>
+
+  <section class="band-dark" style="border-radius:var(--radius-lg);padding:32px;margin-bottom:64px">
+    <h3 style="margin:0 0 8px">Serve aiuto ora?</h3>
+    <p style="margin:0;color:#B9C7D6">Scrivi a <a href="mailto:<%- ct('site.email_support') %>"><%- ct('site.email_support') %></a> o chiama il <%- ct('site.phone') %> · <%- ct('contatti.hours') %></p>
+    <a class="btn btn-primary" href="/contatti" style="text-decoration:none;margin-top:18px">Apri un ticket →</a>
+  </section>
+
+  <%- include('partials/footer') %>
+</div>
+<%- include('partials/tail') %>

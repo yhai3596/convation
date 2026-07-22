@@ -5,9 +5,8 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const FAMILIES = [
-  { pkg: '@fontsource/cormorant-garamond', out: 'cormorant-garamond', css: ['400.css', '600.css'] },
-  { pkg: '@fontsource/lora', out: 'lora', css: ['400.css', '600.css'] },
-  { pkg: '@fontsource/noto-serif-sc', out: 'noto-serif-sc', css: ['400.css', '600.css'] },
+  { pkg: '@fontsource/archivo', out: 'archivo', css: ['500.css', '600.css', '700.css'] },
+  { pkg: '@fontsource/inter', out: 'inter', css: ['400.css', '600.css', '700.css'] },
 ];
 
 let ok = true;

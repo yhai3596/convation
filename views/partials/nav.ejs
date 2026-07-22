@@ -1,14 +1,28 @@
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="tb-group">
+      <span>☎ <%- ct('site.phone') %></span>
+      <a href="mailto:<%- ct('site.email_info') %>"><%- ct('site.email_info') %></a>
+      <a href="/detrazioni">Detrazioni e incentivi</a>
+    </div>
+    <div class="tb-group">
+      <a href="/login"><%- ct('ui.area_riservata') %> →</a>
+    </div>
+  </div>
+</div>
 <nav class="nav site-nav">
-  <a href="/" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:baseline;gap:10px">Alan<span style="color:var(--color-accent)">.</span><span style="font-family:'Lora','Noto Serif SC',serif;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--color-neutral-600)">HVAC × AI</span></a>
-  <% const navItems = [['首页','/'],['工具集','/tools'],['企业AI服务','/services'],['AI课程','/courses'],['案例·培训','/cases'],['AI资讯','/blog'],['关于','/about']]; %>
-  <% for (const [label, href] of navItems) { %>
-  <a href="<%= href %>"<%- active === label ? ' aria-current="page"' : '' %>><%= label %></a>
+  <a href="/" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
+    <img src="/assets/logo.jpg" alt="Convation" style="height:34px;width:auto;display:block">
+  </a>
+  <% const navItems = [['Prodotti','/prodotti','prodotti'],['Documentazione','/documentazione','documentazione'],['Strumenti','/strumenti','strumenti'],['Referenze','/referenze','referenze'],['Assistenza','/assistenza','assistenza'],['Chi siamo','/chi-siamo','chi-siamo']]; %>
+  <% for (const [label, href, key] of navItems) { %>
+  <a href="<%= href %>"<%- active === key ? ' aria-current="page"' : '' %>><%= label %></a>
   <% } %>
   <% if (user) { %>
-  <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap">你好，<%= user.name %></span>
-  <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">后台</a><% } %>
-  <a href="#" id="nav-logout" style="font-size:13px">退出</a>
+  <span style="font-size:13px;color:var(--color-neutral-600);white-space:nowrap">Ciao, <%= user.name %></span>
+  <% if (user.role === 'admin') { %><a href="/admin" style="font-size:13px">Admin</a><% } %>
+  <a href="#" id="nav-logout" style="font-size:13px">Esci</a>
   <% } else { %>
-  <a class="btn btn-primary" href="/login" style="text-decoration:none">登录 · Sign in</a>
+  <a class="btn btn-primary" href="/consulenza" style="text-decoration:none">Richiedi preventivo</a>
   <% } %>
 </nav>
