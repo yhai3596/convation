@@ -6,6 +6,7 @@
 <title><%= title %></title>
 <meta name="description" content="<%= (typeof locale !== 'undefined' && locale === 'en') ? 'Convation — sale, installation and service of heat pumps and air conditioners in Italy. A reliable partner for installers and homeowners.' : 'Convation — vendita, installazione e assistenza di pompe di calore e climatizzatori in Italia. Partner affidabile per installatori e privati.' %>">
 <% if (typeof hrefIt !== 'undefined') { %>
+<link rel="canonical" href="<%= (typeof locale !== 'undefined' && locale === 'en') ? hrefEn : hrefIt %>">
 <link rel="alternate" hreflang="it" href="<%= hrefIt %>">
 <link rel="alternate" hreflang="en" href="<%= hrefEn %>">
 <link rel="alternate" hreflang="x-default" href="<%= hrefIt %>">
