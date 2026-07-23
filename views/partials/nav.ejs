@@ -28,7 +28,7 @@ const TB = {
 </div>
 <nav class="nav site-nav">
   <a href="<%= PRE || '/' %>" class="nav-brand" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px">
-    <img src="/assets/logo.png" alt="Convation" style="height:48px;width:auto;display:block">
+    <img src="/assets/logo.png" alt="Convation" style="height:96px;width:auto;display:block">
   </a>
   <% for (const [label, href, key] of NAV[L]) { %>
   <a href="<%= href %>"<%- active === key ? ' aria-current="page"' : '' %>><%= label %></a>
