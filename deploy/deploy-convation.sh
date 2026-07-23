@@ -90,6 +90,7 @@ ExecStart=/usr/bin/node ${APP_DIR}/server.js
 Restart=always
 RestartSec=3
 Environment=NODE_ENV=production
+EnvironmentFile=${APP_DIR}/.env
 
 [Install]
 WantedBy=multi-user.target

@@ -7,7 +7,7 @@ const siteContent = require('../content');
 
 const router = express.Router();
 const SITE = 'Convation';
-const ORIGIN = process.env.SITE_ORIGIN || 'https://www.convation.it';
+const ORIGIN = process.env.SITE_ORIGIN || 'https://convation.it';
 
 // [itPath, enPath, view, active, titleIt, titleEn] —— 纯静态页（REGISTRY 文案）
 const PAGES = [
